@@ -423,6 +423,65 @@ rafraîchissement, eux, sont révocables immédiatement. Avec des sessions en
 base, la coupure était instantanée. C'est le compromis assumé en échange du
 RLS et de la gestion des SMS et du MFA.
 
+## Le schéma métier
+
+Sept tables, deux vues, cinq fonctions. Trois décisions le structurent.
+
+### Une seule notion : la réservation
+
+Ce que le membre appelle « s'inscrire » et ce que le professionnel appelle
+« une réservation » sont **le même objet**. Deux tables auraient demandé de
+les synchroniser en permanence, pour rien.
+
+`en-attente` n'est pas une validation à obtenir : c'est la **liste d'attente**
+quand la séance est pleine. Faire patienter quelqu'un devant une place libre
+n'aurait aucun sens pour ce public.
+
+Une séance gratuite ne produit **aucune** facture — pas une facture à 0 €. Il
+n'y a rien à facturer, donc rien à numéroter.
+
+### On ne voit que les gens qu'on croise
+
+Un membre accède au profil d'un autre membre uniquement s'ils **partagent une
+séance**. Ce sont des données personnelles de personnes âgées, pas un
+annuaire.
+
+Le filtrage passe par la vue `membre_visible`, qui s'appuie sur la fonction
+`membres_croises()` en `SECURITY DEFINER`. Une politique RLS posée sur
+`membre` et interrogeant `reservation` — elle-même sous RLS — se mordrait la
+queue. La vue omet aussi la date d'arrivée : elle ne regarde personne d'autre.
+
+### Numérotation par professionnel
+
+Chacun est son propre émetteur, donc sa propre séquence.
+
+**Une `SEQUENCE` Postgres ne convient pas** : elle n'est pas transactionnelle.
+Un rollback consomme le numéro et laisse un trou, ce que l'article 242 nonies
+A du CGI interdit. D'où `compteur_facture`, une ligne par professionnel et par
+année, incrémentée sous `SELECT … FOR UPDATE` dans `emettre_facture()`.
+
+Une facture émise est une pièce comptable : le déclencheur `facture_immuable`
+refuse toute modification du numéro, du montant, de la séquence ou de
+l'année. Seul le statut évolue. On annule par un avoir, on n'efface pas — d'où
+le `on delete restrict` vers la réservation.
+
+### Ce que la base fait elle-même
+
+| Règle | Où | Pourquoi pas dans le code |
+|---|---|---|
+| Capacité d'une séance | déclencheur `verifier_capacite` | deux personnes peuvent viser la dernière place au même instant ; un `if` applicatif ne le voit pas. `FOR UPDATE` sur la séance sérialise les candidats |
+| Génération des séances | `generer_seances()` | dérivée du créneau, jamais saisie. Appelée à la création et par une tâche planifiée pour faire glisser la fenêtre |
+| Numéro de facture | `emettre_facture()` | continuité légale, impossible à garantir depuis plusieurs processus |
+| Cloisonnement | RLS sur les 7 tables | une requête mal filtrée ne peut pas fuiter |
+
+Les erreurs métier portent un `SQLSTATE` dédié, pour que l'application
+distingue un refus d'une panne : `VD001` séance complète, `VD002` introuvable,
+`VD003` accès refusé, `VD004` séance gratuite, `VD005` facture immuable.
+
+`compteur_facture` a le RLS **activé et forcé, sans aucune politique** :
+personne n'y accède, même si un `GRANT` était ajouté par mégarde plus tard.
+Seule `emettre_facture()` y touche.
+
 ## Les deux espaces
 
 `RootLayout` (membre) et `ProLayout` (professionnel) partagent la même coque —

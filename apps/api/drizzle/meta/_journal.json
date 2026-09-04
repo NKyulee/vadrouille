@@ -15,6 +15,27 @@
       "when": 1788527259163,
       "tag": "0001_droits_vue_publique",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1788532111237,
+      "tag": "0002_calm_jasper_sitwell",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1788532111238,
+      "tag": "0003_fonctions_domaine",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1788532111239,
+      "tag": "0004_rls_compteur",
+      "breakpoints": true
     }
   ]
 }

@@ -1,0 +1,948 @@
+{
+  "id": "b63209cd-a27b-4921-b1d5-221cdd73bbc9",
+  "prevId": "8a216b51-cc00-4edd-ae2a-876df9312f14",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.activite": {
+      "name": "activite",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "professionnel_id": {
+          "name": "professionnel_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "titre": {
+          "name": "titre",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "''"
+        },
+        "jour": {
+          "name": "jour",
+          "type": "jour",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "heure": {
+          "name": "heure",
+          "type": "time",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "duree_minutes": {
+          "name": "duree_minutes",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "lieu": {
+          "name": "lieu",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "categorie": {
+          "name": "categorie",
+          "type": "categorie",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "prix_centimes": {
+          "name": "prix_centimes",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "places_par_defaut": {
+          "name": "places_par_defaut",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "responsable_id": {
+          "name": "responsable_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "activite_professionnel_id_professionnel_user_id_fk": {
+          "name": "activite_professionnel_id_professionnel_user_id_fk",
+          "tableFrom": "activite",
+          "tableTo": "professionnel",
+          "columnsFrom": [
+            "professionnel_id"
+          ],
+          "columnsTo": [
+            "user_id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "activite_responsable_id_membre_user_id_fk": {
+          "name": "activite_responsable_id_membre_user_id_fk",
+          "tableFrom": "activite",
+          "tableTo": "membre",
+          "columnsFrom": [
+            "responsable_id"
+          ],
+          "columnsTo": [
+            "user_id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {
+        "activite_lecture": {
+          "name": "activite_lecture",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": [
+            "authenticated"
+          ],
+          "using": "true"
+        },
+        "activite_ecriture_proprietaire": {
+          "name": "activite_ecriture_proprietaire",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "authenticated"
+          ],
+          "using": "\"activite\".\"professionnel_id\" = (select auth.uid())",
+          "withCheck": "\"activite\".\"professionnel_id\" = (select auth.uid())"
+        }
+      },
+      "checkConstraints": {
+        "prix_positif": {
+          "name": "prix_positif",
+          "value": "\"activite\".\"prix_centimes\" >= 0"
+        },
+        "places_positives": {
+          "name": "places_positives",
+          "value": "\"activite\".\"places_par_defaut\" > 0"
+        },
+        "duree_positive": {
+          "name": "duree_positive",
+          "value": "\"activite\".\"duree_minutes\" > 0"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.compteur_facture": {
+      "name": "compteur_facture",
+      "schema": "",
+      "columns": {
+        "professionnel_id": {
+          "name": "professionnel_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "annee": {
+          "name": "annee",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "dernier": {
+          "name": "dernier",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "compteur_facture_professionnel_id_professionnel_user_id_fk": {
+          "name": "compteur_facture_professionnel_id_professionnel_user_id_fk",
+          "tableFrom": "compteur_facture",
+          "tableTo": "professionnel",
+          "columnsFrom": [
+            "professionnel_id"
+          ],
+          "columnsTo": [
+            "user_id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "compteur_par_pro_et_annee": {
+          "name": "compteur_par_pro_et_annee",
+          "nullsNotDistinct": false,
+          "columns": [
+            "professionnel_id",
+            "annee"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.facture": {
+      "name": "facture",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "reservation_id": {
+          "name": "reservation_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "professionnel_id": {
+          "name": "professionnel_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "annee": {
+          "name": "annee",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "sequence": {
+          "name": "sequence",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "numero": {
+          "name": "numero",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "montant_centimes": {
+          "name": "montant_centimes",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "statut": {
+          "name": "statut",
+          "type": "statut_facture",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'a-emettre'"
+        },
+        "emise_le": {
+          "name": "emise_le",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "payee_le": {
+          "name": "payee_le",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "facture_reservation_id_reservation_id_fk": {
+          "name": "facture_reservation_id_reservation_id_fk",
+          "tableFrom": "facture",
+          "tableTo": "reservation",
+          "columnsFrom": [
+            "reservation_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "facture_professionnel_id_professionnel_user_id_fk": {
+          "name": "facture_professionnel_id_professionnel_user_id_fk",
+          "tableFrom": "facture",
+          "tableTo": "professionnel",
+          "columnsFrom": [
+            "professionnel_id"
+          ],
+          "columnsTo": [
+            "user_id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "facture_reservation_id_unique": {
+          "name": "facture_reservation_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "reservation_id"
+          ]
+        },
+        "numero_unique_par_pro": {
+          "name": "numero_unique_par_pro",
+          "nullsNotDistinct": false,
+          "columns": [
+            "professionnel_id",
+            "annee",
+            "sequence"
+          ]
+        }
+      },
+      "policies": {
+        "facture_professionnel": {
+          "name": "facture_professionnel",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "authenticated"
+          ],
+          "using": "\"facture\".\"professionnel_id\" = (select auth.uid())",
+          "withCheck": "\"facture\".\"professionnel_id\" = (select auth.uid())"
+        },
+        "facture_lecture_membre": {
+          "name": "facture_lecture_membre",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": [
+            "authenticated"
+          ],
+          "using": "EXISTS (\n        SELECT 1 FROM reservation r\n        WHERE r.id = \"facture\".\"reservation_id\" AND r.membre_id = (select auth.uid()))"
+        }
+      },
+      "checkConstraints": {
+        "montant_positif": {
+          "name": "montant_positif",
+          "value": "\"facture\".\"montant_centimes\" >= 0"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.membre": {
+      "name": "membre",
+      "schema": "",
+      "columns": {
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "prenom": {
+          "name": "prenom",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nom": {
+          "name": "nom",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "initiales": {
+          "name": "initiales",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "couleur_avatar": {
+          "name": "couleur_avatar",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'foret'"
+        },
+        "membre_depuis": {
+          "name": "membre_depuis",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "membre_user_id_users_id_fk": {
+          "name": "membre_user_id_users_id_fk",
+          "tableFrom": "membre",
+          "tableTo": "users",
+          "schemaTo": "auth",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {
+        "membre_lit_son_profil": {
+          "name": "membre_lit_son_profil",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": [
+            "authenticated"
+          ],
+          "using": "\"membre\".\"user_id\" = (select auth.uid())"
+        },
+        "membre_modifie_son_profil": {
+          "name": "membre_modifie_son_profil",
+          "as": "PERMISSIVE",
+          "for": "UPDATE",
+          "to": [
+            "authenticated"
+          ],
+          "using": "\"membre\".\"user_id\" = (select auth.uid())",
+          "withCheck": "\"membre\".\"user_id\" = (select auth.uid())"
+        }
+      },
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.professionnel": {
+      "name": "professionnel",
+      "schema": "",
+      "columns": {
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "prenom": {
+          "name": "prenom",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nom": {
+          "name": "nom",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "initiales": {
+          "name": "initiales",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "couleur_avatar": {
+          "name": "couleur_avatar",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'prune'"
+        },
+        "structure": {
+          "name": "structure",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "telephone": {
+          "name": "telephone",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "siret": {
+          "name": "siret",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "presentation": {
+          "name": "presentation",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "''"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "professionnel_user_id_users_id_fk": {
+          "name": "professionnel_user_id_users_id_fk",
+          "tableFrom": "professionnel",
+          "tableTo": "users",
+          "schemaTo": "auth",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {
+        "pro_lit_son_profil": {
+          "name": "pro_lit_son_profil",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": [
+            "authenticated"
+          ],
+          "using": "\"professionnel\".\"user_id\" = (select auth.uid()) AND (auth.jwt() -> 'app_metadata' ->> 'role') = 'professionnel'"
+        },
+        "pro_modifie_son_profil": {
+          "name": "pro_modifie_son_profil",
+          "as": "PERMISSIVE",
+          "for": "UPDATE",
+          "to": [
+            "authenticated"
+          ],
+          "using": "\"professionnel\".\"user_id\" = (select auth.uid()) AND (auth.jwt() -> 'app_metadata' ->> 'role') = 'professionnel'",
+          "withCheck": "\"professionnel\".\"user_id\" = (select auth.uid()) AND (auth.jwt() -> 'app_metadata' ->> 'role') = 'professionnel'"
+        },
+        "service_gere_les_pros": {
+          "name": "service_gere_les_pros",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "service_role"
+          ],
+          "using": "true",
+          "withCheck": "true"
+        }
+      },
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.reservation": {
+      "name": "reservation",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "seance_id": {
+          "name": "seance_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "membre_id": {
+          "name": "membre_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "personnes": {
+          "name": "personnes",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 1
+        },
+        "statut": {
+          "name": "statut",
+          "type": "statut_reservation",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'confirmee'"
+        },
+        "reservee_le": {
+          "name": "reservee_le",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "reservation_seance_id_seance_id_fk": {
+          "name": "reservation_seance_id_seance_id_fk",
+          "tableFrom": "reservation",
+          "tableTo": "seance",
+          "columnsFrom": [
+            "seance_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "reservation_membre_id_membre_user_id_fk": {
+          "name": "reservation_membre_id_membre_user_id_fk",
+          "tableFrom": "reservation",
+          "tableTo": "membre",
+          "columnsFrom": [
+            "membre_id"
+          ],
+          "columnsTo": [
+            "user_id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "une_reservation_par_membre_et_seance": {
+          "name": "une_reservation_par_membre_et_seance",
+          "nullsNotDistinct": false,
+          "columns": [
+            "seance_id",
+            "membre_id"
+          ]
+        }
+      },
+      "policies": {
+        "reservation_membre": {
+          "name": "reservation_membre",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "authenticated"
+          ],
+          "using": "\"reservation\".\"membre_id\" = (select auth.uid())",
+          "withCheck": "\"reservation\".\"membre_id\" = (select auth.uid())"
+        },
+        "reservation_professionnel": {
+          "name": "reservation_professionnel",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "authenticated"
+          ],
+          "using": "EXISTS (\n        SELECT 1 FROM seance s JOIN activite a ON a.id = s.activite_id\n        WHERE s.id = \"reservation\".\"seance_id\" AND a.professionnel_id = (select auth.uid()))",
+          "withCheck": "EXISTS (\n        SELECT 1 FROM seance s JOIN activite a ON a.id = s.activite_id\n        WHERE s.id = \"reservation\".\"seance_id\" AND a.professionnel_id = (select auth.uid()))"
+        }
+      },
+      "checkConstraints": {
+        "personnes_positives": {
+          "name": "personnes_positives",
+          "value": "\"reservation\".\"personnes\" > 0"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.seance": {
+      "name": "seance",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "activite_id": {
+          "name": "activite_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "date": {
+          "name": "date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "places_total": {
+          "name": "places_total",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "annulee": {
+          "name": "annulee",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "seance_activite_id_activite_id_fk": {
+          "name": "seance_activite_id_activite_id_fk",
+          "tableFrom": "seance",
+          "tableTo": "activite",
+          "columnsFrom": [
+            "activite_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "seance_unique_par_date": {
+          "name": "seance_unique_par_date",
+          "nullsNotDistinct": false,
+          "columns": [
+            "activite_id",
+            "date"
+          ]
+        }
+      },
+      "policies": {
+        "seance_lecture": {
+          "name": "seance_lecture",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": [
+            "authenticated"
+          ],
+          "using": "true"
+        },
+        "seance_ecriture_proprietaire": {
+          "name": "seance_ecriture_proprietaire",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "authenticated"
+          ],
+          "using": "EXISTS (SELECT 1 FROM activite a WHERE a.id = \"seance\".\"activite_id\" AND a.professionnel_id = (select auth.uid()))",
+          "withCheck": "EXISTS (SELECT 1 FROM activite a WHERE a.id = \"seance\".\"activite_id\" AND a.professionnel_id = (select auth.uid()))"
+        }
+      },
+      "checkConstraints": {
+        "places_seance_positives": {
+          "name": "places_seance_positives",
+          "value": "\"seance\".\"places_total\" > 0"
+        }
+      },
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {
+    "public.categorie": {
+      "name": "categorie",
+      "schema": "public",
+      "values": [
+        "atelier",
+        "sortie",
+        "jeu",
+        "sport",
+        "partage"
+      ]
+    },
+    "public.jour": {
+      "name": "jour",
+      "schema": "public",
+      "values": [
+        "lundi",
+        "mardi",
+        "mercredi",
+        "jeudi",
+        "vendredi",
+        "samedi",
+        "dimanche"
+      ]
+    },
+    "public.statut_facture": {
+      "name": "statut_facture",
+      "schema": "public",
+      "values": [
+        "a-emettre",
+        "emise",
+        "payee"
+      ]
+    },
+    "public.statut_reservation": {
+      "name": "statut_reservation",
+      "schema": "public",
+      "values": [
+        "en-attente",
+        "confirmee",
+        "annulee"
+      ]
+    }
+  },
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {
+    "public.membre_visible": {
+      "columns": {
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "prenom": {
+          "name": "prenom",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nom": {
+          "name": "nom",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "initiales": {
+          "name": "initiales",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "couleur_avatar": {
+          "name": "couleur_avatar",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'foret'"
+        }
+      },
+      "definition": "select \"user_id\", \"prenom\", \"nom\", \"initiales\", \"couleur_avatar\" from \"membre\"",
+      "name": "membre_visible",
+      "schema": "public",
+      "isExisting": false,
+      "materialized": false
+    },
+    "public.professionnel_public": {
+      "columns": {
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "prenom": {
+          "name": "prenom",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nom": {
+          "name": "nom",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "initiales": {
+          "name": "initiales",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "couleur_avatar": {
+          "name": "couleur_avatar",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'prune'"
+        },
+        "structure": {
+          "name": "structure",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "presentation": {
+          "name": "presentation",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "''"
+        }
+      },
+      "definition": "select \"user_id\", \"prenom\", \"nom\", \"initiales\", \"couleur_avatar\", \"structure\", \"presentation\" from \"professionnel\"",
+      "name": "professionnel_public",
+      "schema": "public",
+      "isExisting": false,
+      "materialized": false
+    }
+  },
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

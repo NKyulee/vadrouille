@@ -33,12 +33,17 @@ export default function ProActivityFormPage() {
   }
 
   const enregistrer = (champs: ChampsActivite) => {
+    // Le lieu est obligatoire : sans lui, l'activité n'apparaîtrait pas sur
+    // la carte. `<Select>` n'a pas de validation native, d'où ce garde-fou.
+    if (!champs.lieuId) return
+
     /* Le formulaire ne saisit que ce qui se saisit : le propriétaire et le
        nom de la structure sont composés ici, le pro n'a pas à ressaisir sa
        propre identité. Les inscrits, eux, vivent sur les séances — c'est le
        catalogue qui les reporte à la régénération. */
     const complet = {
       ...champs,
+      lieuId: champs.lieuId,
       proposePar: profil.structure,
       professionnelId: profil.id,
     }

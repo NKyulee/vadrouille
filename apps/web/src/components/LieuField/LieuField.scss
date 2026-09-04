@@ -1,0 +1,13 @@
+.lieu-option {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.creation-lieu {
+  padding: var(--espace-md);
+  background-color: var(--couleur-fond);
+  border: 1px solid var(--couleur-bordure);
+  border-radius: var(--rayon-md);
+}
+

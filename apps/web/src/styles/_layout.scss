@@ -154,6 +154,21 @@
   border-radius: var(--rayon-md);
 }
 
+// Proposition d'adresse renvoyée par le géocodeur : on choisit, on ne devine pas.
+.proposition {
+  width: 100%;
+  justify-content: flex-start;
+  text-align: left;
+  font-weight: 400;
+
+  &--choisie {
+    font-weight: 700;
+    color: var(--couleur-primaire);
+    background-color: var(--couleur-primaire-fond);
+    border-color: var(--couleur-primaire);
+  }
+}
+
 // Texte secondaire
 .texte-doux {
   color: var(--couleur-texte-doux);

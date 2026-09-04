@@ -1,6 +1,8 @@
 import { supabase } from '../auth/supabase.ts'
 import type {
   Activite,
+  ChampsEcriture,
+  Lieu,
   CategorieId,
   JourId,
   Membre,
@@ -31,7 +33,8 @@ type LigneActivite = {
   jour: JourId
   heure: string
   duree_minutes: number
-  lieu: string
+  lieu_id: string
+  lieu?: { nom: string } | { nom: string }[] | null
   categorie: CategorieId
   prix_centimes: number
   places_par_defaut: number
@@ -49,7 +52,8 @@ function versActivite(l: LigneActivite): Activite {
     heure: l.heure.slice(0, 5),
     jour: l.jour,
     dureeMinutes: l.duree_minutes,
-    lieu: l.lieu,
+    lieuId: l.lieu_id,
+    lieu: (Array.isArray(l.lieu) ? l.lieu[0]?.nom : l.lieu?.nom) ?? '',
     categorie: l.categorie,
     prixCentimes: l.prix_centimes,
     placesParDefaut: l.places_par_defaut,
@@ -89,7 +93,7 @@ export async function chargerCatalogue(): Promise<{
   seances: Seance[]
 }> {
   const [{ data: activites, error: eA }, { data: seances, error: eS }] = await Promise.all([
-    supabase.from('activite').select('*, professionnel_public(structure)').order('heure'),
+    supabase.from('activite').select('*, professionnel_public(structure), lieu(nom)').order('heure'),
     /* On interroge la vue, pas la table : PostgREST ne sait pas embarquer
        une vue dans une requête, faute de clé étrangère détectable. La vue
        porte donc aussi l'activité et la date. */
@@ -117,7 +121,7 @@ export async function chargerCatalogue(): Promise<{
   }
 }
 
-export async function creerActivite(champs: Omit<Activite, 'id' | 'proposePar'>): Promise<string> {
+export async function creerActivite(champs: ChampsEcriture): Promise<string> {
   const { data, error } = await supabase
     .from('activite')
     .insert({
@@ -127,7 +131,7 @@ export async function creerActivite(champs: Omit<Activite, 'id' | 'proposePar'>)
       jour: champs.jour,
       heure: champs.heure,
       duree_minutes: champs.dureeMinutes,
-      lieu: champs.lieu,
+      lieu_id: champs.lieuId,
       categorie: champs.categorie,
       prix_centimes: champs.prixCentimes,
       places_par_defaut: champs.placesParDefaut,
@@ -151,7 +155,7 @@ export async function creerActivite(champs: Omit<Activite, 'id' | 'proposePar'>)
 
 export async function modifierActivite(
   id: string,
-  champs: Omit<Activite, 'id' | 'proposePar'>,
+  champs: ChampsEcriture,
 ): Promise<void> {
   const { error } = await supabase
     .from('activite')
@@ -161,7 +165,7 @@ export async function modifierActivite(
       jour: champs.jour,
       heure: champs.heure,
       duree_minutes: champs.dureeMinutes,
-      lieu: champs.lieu,
+      lieu_id: champs.lieuId,
       categorie: champs.categorie,
       prix_centimes: champs.prixCentimes,
       places_par_defaut: champs.placesParDefaut,
@@ -301,6 +305,44 @@ export async function marquerFacturePayee(reservationId: string): Promise<void> 
   if (error) throw new Error(error.message)
 }
 
+/* --- Lieux ------------------------------------------------------------------ */
+
+export async function chargerLieux(): Promise<Lieu[]> {
+  const { data, error } = await supabase.from('lieu').select('*').order('nom')
+  if (error) throw new Error(error.message)
+  return (data ?? []).map((l) => ({
+    id: l.id,
+    nom: l.nom,
+    adresse: l.adresse,
+    latitude: l.latitude,
+    longitude: l.longitude,
+  }))
+}
+
+/** Crée le lieu, ou renvoie celui qui porte déjà ce nom à cette adresse. */
+export async function creerLieu(champs: Omit<Lieu, 'id'>): Promise<string> {
+  const { data: existant } = await supabase
+    .from('lieu')
+    .select('id')
+    .eq('nom', champs.nom)
+    .eq('adresse', champs.adresse)
+    .maybeSingle()
+  if (existant) return existant.id
+
+  const { data, error } = await supabase
+    .from('lieu')
+    .insert({
+      nom: champs.nom,
+      adresse: champs.adresse,
+      latitude: champs.latitude,
+      longitude: champs.longitude,
+    })
+    .select('id')
+    .single()
+  if (error) throw new Error(error.message)
+  return data.id
+}
+
 /* --- Profil du membre -------------------------------------------------------
    Le RLS restreint l'écriture à sa propre ligne : `eq('user_id', …)` est là
    pour viser la bonne ligne, pas pour protéger. Même sans ce filtre, la base
@@ -314,6 +356,9 @@ export async function enregistrerProfilMembre(profil: Membre): Promise<void> {
       nom: profil.nom,
       initiales: profil.initiales,
       couleur_avatar: profil.couleur,
+      adresse: profil.adresse ?? null,
+      latitude: profil.latitude ?? null,
+      longitude: profil.longitude ?? null,
     })
     .eq('user_id', profil.id)
   if (error) throw new Error(error.message)

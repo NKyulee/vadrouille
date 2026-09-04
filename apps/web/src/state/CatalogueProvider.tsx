@@ -3,27 +3,34 @@ import type { ReactNode } from 'react'
 import { aujourdhuiIso } from '../data/dates.ts'
 import {
   chargerCatalogue,
+  chargerLieux,
   chargerParticipants,
   creerActivite,
   modifierActivite,
   supprimerActivite,
 } from '../data/requetes.ts'
-import type { Activite, Membre, Seance } from '../data/types.ts'
+import type { Activite, ChampsEcriture, Lieu, Membre, Seance } from '../data/types.ts'
 import { ContexteCatalogue } from './catalogue.ts'
 
 export default function CatalogueProvider({ children }: { children: ReactNode }) {
   const [activites, setActivites] = useState<readonly Activite[]>([])
   const [seances, setSeances] = useState<readonly Seance[]>([])
   const [participants, setParticipants] = useState<Map<string, Membre[]>>(new Map())
+  const [lieux, setLieux] = useState<readonly Lieu[]>([])
   const [chargement, setChargement] = useState(true)
   const [erreur, setErreur] = useState<string | null>(null)
 
   const recharger = useCallback(async () => {
     try {
-      const [catalogue, parSeance] = await Promise.all([chargerCatalogue(), chargerParticipants()])
+      const [catalogue, parSeance, tousLieux] = await Promise.all([
+        chargerCatalogue(),
+        chargerParticipants(),
+        chargerLieux(),
+      ])
       setActivites(catalogue.activites)
       setSeances(catalogue.seances)
       setParticipants(parSeance)
+      setLieux(tousLieux)
       setErreur(null)
     } catch (e) {
       setErreur(e instanceof Error ? e.message : String(e))
@@ -41,7 +48,7 @@ export default function CatalogueProvider({ children }: { children: ReactNode })
      la base recalcule les séances, les occupations et les participants, et
      deviner ces effets côté client finirait par diverger. */
   const ajouter = useCallback(
-    async (champs: Omit<Activite, 'id' | 'proposePar'>) => {
+    async (champs: ChampsEcriture) => {
       const id = await creerActivite(champs)
       await recharger()
       return id
@@ -50,7 +57,7 @@ export default function CatalogueProvider({ children }: { children: ReactNode })
   )
 
   const modifier = useCallback(
-    async (id: string, champs: Omit<Activite, 'id' | 'proposePar'>) => {
+    async (id: string, champs: ChampsEcriture) => {
       await modifierActivite(id, champs)
       await recharger()
     },
@@ -70,6 +77,7 @@ export default function CatalogueProvider({ children }: { children: ReactNode })
     return {
       activites,
       seances,
+      lieux,
       chargement,
       erreur,
       recharger,
@@ -84,11 +92,12 @@ export default function CatalogueProvider({ children }: { children: ReactNode })
       duProfessionnel: (professionnelId: string) =>
         activites.filter((a) => a.professionnelId === professionnelId),
       participantsDe: (seanceId: string) => participants.get(seanceId) ?? [],
+      lieuParId: (id: string | undefined) => lieux.find((l) => l.id === id),
       ajouter,
       modifier,
       supprimer,
     }
-  }, [activites, seances, participants, chargement, erreur, recharger, ajouter, modifier, supprimer])
+  }, [activites, seances, lieux, participants, chargement, erreur, recharger, ajouter, modifier, supprimer])
 
   return <ContexteCatalogue value={valeur}>{children}</ContexteCatalogue>
 }

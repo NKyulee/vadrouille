@@ -11,6 +11,7 @@ import ErrorPage from './pages/ErrorPage/ErrorPage.tsx'
 import HelpPage from './pages/HelpPage/HelpPage.tsx'
 import HomePage from './pages/HomePage/HomePage.tsx'
 import LoginPage from './pages/LoginPage/LoginPage.tsx'
+import MapPage from './pages/MapPage/MapPage.tsx'
 import LoginProPage from './pages/LoginProPage/LoginProPage.tsx'
 import NotFoundPage from './pages/NotFoundPage/NotFoundPage.tsx'
 import ProActivitiesPage from './pages/ProActivitiesPage/ProActivitiesPage.tsx'
@@ -74,6 +75,7 @@ export const routes: RouteObject[] = [
               { index: true, element: <HomePage /> },
               { path: 'activites', element: <ActivitiesPage /> },
               { path: 'activites/:id', element: <ActivityDetailPage /> },
+              { path: 'carte', element: <MapPage /> },
               { path: 'contacts', element: <ContactsPage /> },
               { path: 'aide', element: <HelpPage /> },
               { path: 'profil', element: <ProfilePage /> },

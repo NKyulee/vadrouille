@@ -1,5 +1,5 @@
 import { createContext, useContext } from 'react'
-import type { Activite, Membre, Seance } from '../data/types.ts'
+import type { Activite, ChampsEcriture, Lieu, Membre, Seance } from '../data/types.ts'
 
 /* Le catalogue porte les deux niveaux — créneaux et occurrences datées — et
    les participants visibles. Il est partagé par les deux espaces.
@@ -11,6 +11,7 @@ import type { Activite, Membre, Seance } from '../data/types.ts'
 export interface Catalogue {
   activites: readonly Activite[]
   seances: readonly Seance[]
+  lieux: readonly Lieu[]
   chargement: boolean
   erreur: string | null
   recharger: () => Promise<void>
@@ -24,9 +25,10 @@ export interface Catalogue {
   duProfessionnel: (professionnelId: string) => Activite[]
   /** Vide tant qu'on n'est pas soi-même inscrit à la séance. */
   participantsDe: (seanceId: string) => Membre[]
+  lieuParId: (id: string | undefined) => Lieu | undefined
 
-  ajouter: (activite: Omit<Activite, 'id' | 'proposePar'>) => Promise<string>
-  modifier: (id: string, champs: Omit<Activite, 'id' | 'proposePar'>) => Promise<void>
+  ajouter: (activite: ChampsEcriture) => Promise<string>
+  modifier: (id: string, champs: ChampsEcriture) => Promise<void>
   supprimer: (id: string) => Promise<void>
 }
 

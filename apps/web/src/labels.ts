@@ -91,6 +91,10 @@ export const LABELS = {
     prenom: 'Prénom',
     nom: 'Nom',
     requis: 'Ce champ est obligatoire.',
+    adresse: 'Votre adresse',
+    adresseAide:
+      'Facultative. Elle sert uniquement à classer les lieux du plus proche au plus loin.',
+    chercherAdresse: 'Chercher cette adresse',
     couleur: 'Couleur de votre pastille',
     couleurs: {
       foret: 'Vert',
@@ -309,6 +313,35 @@ export const LABELS = {
       enregistrer: 'Enregistrer',
       enregistre: 'Vos informations ont été enregistrées.',
     },
+  },
+
+  carte: {
+    titre: 'Où ça se passe',
+    chargement: 'Chargement de la carte…',
+    versListe: 'Revenir au programme',
+    versCarte: 'Voir sur une carte',
+    chezMoi: 'Chez vous',
+    aDistance: (d: string) => `à ${d} de chez vous`,
+    parDistance: 'Les lieux, du plus proche au plus loin',
+    tousLesLieux: 'Les lieux',
+    sansPosition:
+      'Pour classer les lieux du plus proche au plus loin, indiquez où vous habitez.',
+    utiliserPosition: 'Utiliser ma position actuelle',
+    renseignerAdresse: 'Renseigner mon adresse',
+  },
+
+  lieu: {
+    nouveau: 'Ajouter un lieu',
+    nom: 'Nom du lieu',
+    nomAide: 'Ce que les membres liront : « Salle Jaurès », « Jardin partagé ».',
+    adresse: 'Adresse',
+    adresseAide: 'Numéro, rue et ville. Elle sert à placer le point sur la carte.',
+    chercher: 'Chercher cette adresse',
+    aucuneAdresse: "Aucune adresse trouvée. Précisez le numéro et la ville.",
+    scoreFaible: '(correspondance incertaine)',
+    geocodageIndisponible: "Le service d'adresses ne répond pas. Réessayez dans un instant.",
+    echecCreation: "Le lieu n'a pas pu être enregistré.",
+    enregistrer: 'Enregistrer ce lieu',
   },
 
   inscriptions: {

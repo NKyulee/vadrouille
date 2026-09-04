@@ -11,7 +11,12 @@ import {
   TextField,
 } from 'react-aria-components'
 import Avatar from '../Avatar/Avatar.tsx'
-import { changerMotDePasse, enregistrerProfilMembre } from '../../data/index.ts'
+import {
+  changerMotDePasse,
+  chercherAdresse,
+  enregistrerProfilMembre,
+} from '../../data/index.ts'
+import type { AdresseTrouvee } from '../../data/index.ts'
 import { LABELS } from '../../labels.ts'
 import type { CouleurAvatar, Membre } from '../../data/types.ts'
 import './MemberProfileForm.scss'
@@ -38,6 +43,14 @@ export default function MemberProfileForm({ membre, onEnregistre }: Props) {
   const [issue, setIssue] = useState<{ texte: string; erreur: boolean } | null>(null)
   const [envoi, setEnvoi] = useState(false)
 
+  /* L'adresse ne sert qu'à classer les lieux du plus proche au plus loin.
+     Facultative : personne n'a à dire où il habite pour consulter le
+     programme. Seules les coordonnées sont conservées, avec le libellé
+     normalisé — jamais la saisie brute. */
+  const [saisieAdresse, setSaisieAdresse] = useState(membre.adresse ?? '')
+  const [propositions, setPropositions] = useState<AdresseTrouvee[]>([])
+  const [choisie, setChoisie] = useState<AdresseTrouvee | null>(null)
+
   const [motDePasse, setMotDePasse] = useState('')
   const [issueMdp, setIssueMdp] = useState<{ texte: string; erreur: boolean } | null>(null)
 
@@ -51,6 +64,12 @@ export default function MemberProfileForm({ membre, onEnregistre }: Props) {
         nom: nom.trim(),
         initiales: initiales(prenom, nom),
         couleur,
+        ...(choisie
+          ? { adresse: choisie.label, latitude: choisie.latitude, longitude: choisie.longitude }
+          : {}),
+        ...(saisieAdresse.trim() === ''
+          ? { adresse: undefined, latitude: undefined, longitude: undefined }
+          : {}),
       })
       // La session porte le nom affiché dans l'entête et les avatars : sans
       // ce rechargement, l'ancien nom resterait à l'écran jusqu'au prochain
@@ -126,6 +145,42 @@ export default function MemberProfileForm({ membre, onEnregistre }: Props) {
             ))}
           </div>
         </RadioGroup>
+
+        <TextField className="champ" value={saisieAdresse} onChange={setSaisieAdresse}>
+          <Label className="champ__label">{LABELS.profil.adresse}</Label>
+          <Text slot="description" className="champ__aide">
+            {LABELS.profil.adresseAide}
+          </Text>
+          <Input className="champ__saisie" autoComplete="street-address" />
+        </TextField>
+
+        <div className="rangee rangee--xs rangee--repli">
+          <Button
+            className="bouton bouton--discret"
+            isDisabled={saisieAdresse.trim().length < 5}
+            onPress={() => void chercherAdresse(saisieAdresse).then(setPropositions)}
+          >
+            {LABELS.profil.chercherAdresse}
+          </Button>
+        </div>
+
+        {propositions.length > 0 ? (
+          <ul role="list" className="pile pile--xs">
+            {propositions.map((p) => (
+              <li key={p.label}>
+                <Button
+                  className={`bouton bouton--discret proposition ${choisie?.label === p.label ? 'proposition--choisie' : ''}`}
+                  onPress={() => {
+                    setChoisie(p)
+                    setSaisieAdresse(p.label)
+                  }}
+                >
+                  {p.label}
+                </Button>
+              </li>
+            ))}
+          </ul>
+        ) : null}
 
         <div className="formulaire__actions">
           <Button type="submit" className="bouton" isDisabled={envoi}>

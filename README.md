@@ -217,6 +217,57 @@ premier rendu. Aucun composant ne doit lire ce champ : la vérité est dans
 `mock.ts` prennent d'ailleurs les inscriptions en argument, ils ne les
 devinent pas.
 
+## Carte des lieux
+
+`/carte` place les lieux sur une carte et les classe du plus proche au plus
+loin. Accessible depuis le programme — pas une sixième entrée de navigation :
+la barre du bas en compte déjà cinq, et « où ça se passe » est une facette du
+programme.
+
+### Le lieu est devenu une entité
+
+`activite.lieu` était une chaîne recopiée : « Salle Jaurès » apparaissait
+quatre fois à l'identique. Une carte a besoin de coordonnées, qu'une chaîne ne
+porte pas. D'où la table `lieu` — nom, adresse normalisée, latitude,
+longitude — et `activite.lieu_id`.
+
+### Géocodage
+
+[API Adresse](https://adresse.data.gouv.fr) de data.gouv.fr : gratuite, sans
+clé, sans inscription, et faisant autorité en France. Nominatim conviendrait
+techniquement, mais sa politique d'usage interdit les requêtes automatisées
+fréquentes.
+
+Deux principes :
+
+- **On propose, on ne devine pas.** Le géocodeur renvoie une liste ; la
+  personne choisit. Une salle mal placée enverrait quelqu'un ailleurs.
+- **On stocke l'adresse normalisée**, jamais la saisie. Ce qui s'affiche est
+  ce qui a servi à calculer le point.
+
+GeoJSON range les coordonnées en `[longitude, latitude]` — l'inverse de
+l'ordre habituel. C'est l'erreur classique, d'où les contraintes
+`latitude BETWEEN -90 AND 90` qui l'attrapent.
+
+### « Près de chez moi »
+
+Deux sources, dans cet ordre : la position du navigateur si elle a été
+demandée, sinon l'adresse du profil. **L'adresse est la source fiable** — une
+autorisation de géolocalisation est un obstacle de plus pour le public visé,
+et elle donne où l'on est, pas où l'on habite. Elle reste facultative :
+personne n'a à dire où il vit pour consulter le programme.
+
+Les distances sont à vol d'oiseau (haversine), donc toujours inférieures au
+trajet réel. Suffisant pour trier, insuffisant pour annoncer un temps de
+marche — ce qu'on se garde bien de faire.
+
+### La carte n'est pas accessible, la liste l'est
+
+Une carte Leaflet ne se parcourt ni au clavier ni au lecteur d'écran. La même
+information figure donc en liste, triée par distance, sous la carte. Ce n'est
+pas un doublon : c'est l'équivalent accessible, et pour une partie du public
+ce sera la seule version utilisable.
+
 ## Profil et préférences
 
 Chacun modifie ses propres informations : prénom, nom, couleur d'avatar, mot

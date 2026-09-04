@@ -30,6 +30,10 @@ export interface Membre {
   membreDepuis?: string
   /** Renseigné pour les membres joignables (responsables d'activité). */
   telephone?: string
+  /** Adresse du domicile, facultative. Sert au tri « près de chez moi ». */
+  adresse?: string
+  latitude?: number
+  longitude?: number
 }
 
 export interface Activite {
@@ -40,6 +44,8 @@ export interface Activite {
   /** Format 24 h « HH:MM », trié tel quel. */
   heure: string
   dureeMinutes: number
+  lieuId: string
+  /** Dénormalisé à la lecture, pour éviter une jointure dans chaque écran. */
   lieu: string
   /** Professionnel propriétaire. Seul lui peut la modifier. */
   professionnelId: string
@@ -134,3 +140,18 @@ export interface Reservation {
   /** Absente pour une séance gratuite : il n'y a rien à facturer. */
   facture?: Facture
 }
+
+/** Une salle, un jardin, un point de rendez-vous. Porte ses coordonnées. */
+export interface Lieu {
+  id: string
+  nom: string
+  /** Adresse normalisée par le géocodeur, pas la saisie. */
+  adresse: string
+  latitude: number
+  longitude: number
+}
+
+/* Ce qu'on écrit d'une activité. `proposePar` et `lieu` sont dénormalisés à
+   la lecture — les inclure ici inviterait à les écrire, et à diverger de leur
+   source. */
+export type ChampsEcriture = Omit<Activite, 'id' | 'proposePar' | 'lieu'>

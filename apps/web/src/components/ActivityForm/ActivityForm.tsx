@@ -16,6 +16,7 @@ import {
   TextField,
 } from 'react-aria-components'
 import { CATEGORIES, JOURS } from '../../data/index.ts'
+import LieuField from '../LieuField/LieuField.tsx'
 import { useCatalogue } from '../../state/catalogue.ts'
 import { centimesVersEuros, eurosVersCentimes } from '../../data/monnaie.ts'
 import { LABELS } from '../../labels.ts'
@@ -30,7 +31,7 @@ export interface ChampsActivite {
   jour: JourId
   heure: string
   dureeMinutes: number
-  lieu: string
+  lieuId: string | undefined
   categorie: CategorieId
   prixCentimes: number
   placesParDefaut: number
@@ -43,7 +44,7 @@ const VIDE: ChampsActivite = {
   jour: 'lundi',
   heure: '10:00',
   dureeMinutes: 60,
-  lieu: '',
+  lieuId: undefined,
   categorie: 'atelier',
   prixCentimes: 0,
   placesParDefaut: 10,
@@ -51,14 +52,14 @@ const VIDE: ChampsActivite = {
 }
 
 function depuisActivite(activite: Activite): ChampsActivite {
-  const { titre, description, jour, heure, dureeMinutes, lieu, categorie } = activite
+  const { titre, description, jour, heure, dureeMinutes, categorie } = activite
   return {
     titre,
     description,
     jour,
     heure,
     dureeMinutes,
-    lieu,
+    lieuId: activite.lieuId,
     categorie,
     prixCentimes: activite.prixCentimes,
     placesParDefaut: activite.placesParDefaut,
@@ -77,7 +78,7 @@ export default function ActivityForm({ activite, onEnregistrer, onAnnuler }: Act
   /* Les responsables proposés sont les membres qu'on croise : la base ne
      laisse pas voir les autres, et désigner quelqu'un qu'on ne connaît pas
      n'aurait pas de sens. */
-  const { participantsDe, seances } = useCatalogue()
+  const { participantsDe, seances, lieux, recharger } = useCatalogue()
   const responsablesPossibles = [
     ...new Map(seances.flatMap((s) => participantsDe(s.id)).map((m) => [m.id, m])).values(),
   ]
@@ -224,16 +225,14 @@ export default function ActivityForm({ activite, onEnregistrer, onAnnuler }: Act
         </Select>
       </div>
 
-      <TextField
-        className="champ"
-        isRequired
-        value={valeurs.lieu}
-        onChange={(v) => modifier('lieu', v)}
-      >
-        <Label className="champ__label">{LABELS.pro.formulaire.lieu}</Label>
-        <Input className="champ__saisie" autoComplete="off" />
-        <FieldError className="champ__erreur">{LABELS.pro.formulaire.requis}</FieldError>
-      </TextField>
+      {/* Le lieu porte des coordonnées : c'est une entité, pas une chaîne.
+          On choisit dans la liste, on n'en crée un que si besoin. */}
+      <LieuField
+        lieux={lieux}
+        valeur={valeurs.lieuId}
+        onChange={(id) => modifier('lieuId', id)}
+        onLieuCree={recharger}
+      />
 
       <Select
         className="champ"

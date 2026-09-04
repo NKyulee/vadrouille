@@ -1,0 +1,44 @@
+@use '../../styles/mixins' as *;
+
+.carte-osm {
+  width: 100%;
+  height: 22rem;
+  border: 1px solid var(--couleur-bordure);
+  border-radius: var(--rayon-lg);
+
+  @include a-partir-de('md') {
+    height: 30rem;
+  }
+}
+
+.carte-info {
+  padding: var(--espace-md);
+  background-color: var(--couleur-primaire-fond);
+  border-radius: var(--rayon-md);
+
+  p {
+    margin: 0;
+  }
+}
+
+.lieu-ligne {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espace-sm);
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--espace-sm) var(--espace-md);
+  background-color: var(--couleur-papier);
+  border: 1px solid var(--couleur-bordure);
+  border-radius: var(--rayon-lg);
+
+  &__identite {
+    display: flex;
+    flex-direction: column;
+    min-width: 10rem;
+  }
+
+  &__nom {
+    font-weight: 600;
+  }
+}

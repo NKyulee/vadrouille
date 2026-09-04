@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Tab, TabList, TabPanel, Tabs } from 'react-aria-components'
+import { Link, Tab, TabList, TabPanel, Tabs } from 'react-aria-components'
 import ActivityCard from '../../components/ActivityCard/ActivityCard.tsx'
 import { JOURS, aujourdhuiIso, jourDe, prochainsJours } from '../../data/index.ts'
 import { useTitrePage } from '../../hooks/useTitrePage.ts'
@@ -25,7 +25,15 @@ export default function ActivitiesPage() {
 
   return (
     <div className="pile pile--lg">
-      <h1>{LABELS.activites.titre}</h1>
+      <div className="rangee rangee--espacee rangee--repli">
+        <h1>{LABELS.activites.titre}</h1>
+        {/* Un lien plutôt qu'une sixième entrée de nav : la barre du bas
+            en compte déjà cinq, et « où ça se passe » est une facette du
+            programme, pas une section à part. */}
+        <Link className="lien" href="/carte">
+          {LABELS.carte.versCarte}
+        </Link>
+      </div>
 
       {/* role="alert" : un refus doit être annoncé, pas seulement affiché. */}
       <p role="alert" className={erreur ? 'message-erreur' : 'hors-ecran'}>

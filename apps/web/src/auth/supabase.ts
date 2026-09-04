@@ -7,6 +7,9 @@ import { createClient } from '@supabase/supabase-js'
 const url = import.meta.env.VITE_SUPABASE_URL
 const cle = import.meta.env.VITE_SUPABASE_ANON_KEY
 
+console.log(url)
+console.log(cle)
+
 if (!url || !cle) {
   throw new Error(
     'VITE_SUPABASE_URL et VITE_SUPABASE_ANON_KEY sont absents. Copier .env.example en .env à la racine du dépôt.',

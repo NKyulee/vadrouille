@@ -1,8 +1,16 @@
+import { fileURLToPath } from 'node:url'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 
 export default defineConfig({
   plugins: [react()],
+
+  /* Vite lit les fichiers .env dans le dossier du projet — ici `apps/web` —
+     alors que le dépôt n'en a qu'un, à la racine, partagé avec l'API.
+     Sans cette ligne, `import.meta.env.VITE_*` est vide alors que le fichier
+     est bien rempli : Vite ne le cherche simplement pas au bon endroit.
+     Le chemin est résolu depuis ce fichier de configuration. */
+  envDir: fileURLToPath(new URL('../..', import.meta.url)),
   build: {
     /* Plancher de compatibilité CSS. Sans ce réglage, la cible Vite par
        défaut réécrit le CSS en syntaxe récente, et trois choses cassent sur

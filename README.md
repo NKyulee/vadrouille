@@ -334,6 +334,12 @@ Supabase (GoTrue) porte l'identité ; l'API et le RLS portent les droits.
    (onglets *API* et *Database* du tableau de bord).
 3. `pnpm --filter api db:migrate` puis `pnpm --filter api db:seed`.
 
+Le dépôt n'a **qu'un seul `.env`, à la racine**, partagé par l'API et le
+front. Vite, lui, cherche par défaut dans le dossier du projet (`apps/web`) :
+d'où `envDir` dans `vite.config.ts`. Sans cette ligne, `import.meta.env.VITE_*`
+est vide alors que le fichier est correctement rempli — une panne silencieuse
+et déroutante.
+
 `SUPABASE_SERVICE_ROLE_KEY` **contourne le RLS** : côté serveur uniquement,
 jamais dans un dépôt. Seules `VITE_SUPABASE_URL` et `VITE_SUPABASE_ANON_KEY`
 ont le droit d'arriver dans le bundle.

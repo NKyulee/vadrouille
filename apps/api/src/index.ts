@@ -1,5 +1,6 @@
 import cors from 'cors'
 import express from 'express'
+import { routesInscription } from './routes/inscription.ts'
 import { routesProfil } from './routes/profil.ts'
 
 const app = express()
@@ -16,6 +17,7 @@ app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok' })
 })
 
+app.use('/api', routesInscription)
 app.use('/api', routesProfil)
 
 app.listen(port, () => {

@@ -92,6 +92,18 @@ export const LABELS = {
     prenom: 'Prénom',
     nom: 'Nom',
     requis: 'Ce champ est obligatoire.',
+    telephone: 'Numéro de téléphone',
+    telephoneAide: "C'est par là qu'on vous joint en cas de changement.",
+    emailTitre: 'Changer d’adresse électronique',
+    email: 'Adresse électronique',
+    emailAide:
+      'Elle vous sert à vous connecter. Un courriel de confirmation est envoyé à la nouvelle adresse : le changement ne prend effet qu’une fois le lien suivi.',
+    emailInvalide: 'Indiquer une adresse du type nom@domaine.fr.',
+    changerEmail: 'Changer mon adresse',
+    emailConfirmationEnvoyee:
+      'Un courriel de confirmation a été envoyé. Suivez le lien pour valider la nouvelle adresse.',
+    echecEmail:
+      "L'adresse n'a pas pu être changée. Le service d'envoi de courriels n'est pas encore configuré.",
     adresse: 'Votre adresse',
     adresseAide:
       'Facultative. Elle sert uniquement à classer les lieux du plus proche au plus loin.',
@@ -124,6 +136,25 @@ export const LABELS = {
     },
     rappels: 'Rappels avant une activité',
     rappelsAide: 'Une notification une heure avant le début.',
+  },
+
+  inscription: {
+    titre: 'Créer un compte',
+    intro: 'Quelques informations, et vous pourrez réserver vos activités.',
+    email: 'Adresse électronique',
+    emailAide: 'Elle vous servira à vous connecter.',
+    emailInvalide: 'Indiquer une adresse du type nom@domaine.fr.',
+    telephone: 'Numéro de téléphone',
+    telephoneAide: "Obligatoire : c'est par là qu'on vous joint en cas de changement.",
+    telephoneInvalide: 'Indiquer un numéro à 10 chiffres, par exemple 06 12 34 56 78.',
+    motDePasse: 'Mot de passe',
+    motDePasseAide: 'Au moins 8 caractères.',
+    motDePasseCourt: 'Le mot de passe doit faire au moins 8 caractères.',
+    valider: 'Créer mon compte',
+    dejaInscrit: 'J’ai déjà un compte',
+    echec: "Le compte n'a pas pu être créé. Réessayez dans un instant.",
+    creeMaisPasConnecte: 'Compte créé. Connectez-vous avec votre adresse et votre mot de passe.',
+    depuisConnexion: 'Pas encore de compte ? En créer un',
   },
 
   auth: {
@@ -179,7 +210,7 @@ export const LABELS = {
       motDePasseRequis: 'Le mot de passe est obligatoire.',
       seConnecter: 'Me connecter',
       echecMotDePasse: 'Adresse ou mot de passe incorrect.',
-      pasDeCompte: "Pas encore inscrit ? Passez à l'accueil, on s'occupe de tout.",
+
     },
 
     pro: {

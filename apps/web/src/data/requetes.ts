@@ -356,11 +356,26 @@ export async function enregistrerProfilMembre(profil: Membre): Promise<void> {
       nom: profil.nom,
       initiales: profil.initiales,
       couleur_avatar: profil.couleur,
+      telephone: profil.telephone ?? '',
       adresse: profil.adresse ?? null,
       latitude: profil.latitude ?? null,
       longitude: profil.longitude ?? null,
     })
     .eq('user_id', profil.id)
+  if (error) throw new Error(error.message)
+}
+
+/**
+ * Change l'adresse de connexion.
+ *
+ * Supabase envoie un courriel de confirmation : l'adresse ne change qu'une
+ * fois le lien suivi. C'est voulu — sans vérification, n'importe qui pourrait
+ * inscrire une adresse qui ne lui appartient pas. Tant qu'aucun SMTP
+ * applicatif n'est configuré, l'envoi bute sur la limite de débit du service
+ * intégré et l'appel échoue.
+ */
+export async function changerEmail(nouveau: string): Promise<void> {
+  const { error } = await supabase.auth.updateUser({ email: nouveau.trim().toLowerCase() })
   if (error) throw new Error(error.message)
 }
 

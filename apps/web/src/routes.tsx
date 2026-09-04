@@ -33,6 +33,7 @@ export const routes: RouteObject[] = [
       // Écrans de connexion : premier contact, chargés d'emblée.
       { path: '/connexion', element: <LoginPage /> },
       { path: '/connexion-pro', element: <LoginProPage /> },
+      { path: '/inscription', lazy: page(() => import('./pages/SignupPage/SignupPage.tsx')) },
 
       /* Espace professionnel, entièrement différé. Déclaré avant l'espace
          membre : sans ça, le `*` de RootLayout attraperait /pro. */

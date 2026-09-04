@@ -433,7 +433,55 @@ dans *Settings › Database*. Encoder les caractères spéciaux (`@`, `:`, `/`,
 | Écran | `/connexion` | `/connexion-pro` |
 | Pourquoi | le public est âgé : le mot de passe est le premier obstacle à l'usage, pas la première protection | utilisateurs pro manipulant factures et SIRET : le standard s'applique |
 
-#### Le canal des membres
+##### Inscription
+
+`/inscription` demande prénom, adresse électronique, **téléphone** et mot de
+passe. Les deux premiers et le téléphone sont obligatoires, validés côté
+formulaire *et* côté serveur — le navigateur ne protège rien, la route
+s'appelle directement.
+
+Elle passe par l'API avec la clé de service, et non par `supabase.auth.signUp()` :
+`signUp` déclenche un courriel de confirmation, et le service intégré est
+bridé à quelques envois par heure. L'inscription échouerait la plupart du
+temps.
+
+**Conséquence à connaître : l'adresse n'est pas vérifiée.** C'est tenable
+parce que l'inscription se fait à l'accueil, en présence de la personne.
+Avant d'ouvrir l'inscription au public, il faut un SMTP applicatif, réactiver
+« Confirm email » côté Supabase, et faire repasser ce parcours par `signUp`.
+
+La limitation de débit compte les comptes **effectivement créés**, pas les
+requêtes reçues. Compter les échecs de validation bloquerait un quart d'heure
+quiconque se trompe cinq fois dans le formulaire — c'est-à-dire le public même
+que cette application vise. Un formulaire mal rempli n'est pas une attaque.
+
+#### Téléphone de contact et téléphone d'authentification
+
+Deux choses différentes, même quand ce sont les mêmes chiffres.
+
+| | Où | Modification |
+|---|---|---|
+| Contact | `membre.telephone` | libre, immédiate |
+| Authentification | `auth.users.phone` | exige un SMS de vérification |
+
+Ce dont l'association a besoin est le premier : un numéro pour rappeler
+quelqu'un quand une sortie est annulée. Le second est un facteur de connexion,
+aujourd'hui inutilisable — `updateUser({ phone })` répond *Unable to get SMS
+provider*. Il sera renseigné le jour où un fournisseur sera branché.
+
+#### Changer d'adresse électronique
+
+L'écran existe et passe par le parcours vérifié de Supabase : un courriel part
+vers la nouvelle adresse, et le changement ne prend effet qu'une fois le lien
+suivi. **Il échoue aujourd'hui** sur `over_email_send_rate_limit`, faute de
+SMTP applicatif.
+
+Ce n'est pas contourné volontairement. L'adresse sert à se connecter :
+l'écrire sans vérification laisserait inscrire une adresse qui n'est pas la
+sienne. Le passage par la clé de service, côté serveur, le permettrait — c'est
+précisément pour cela qu'il n'est pas offert.
+
+### Le canal des membres
 
 Une variable, trois valeurs, aucun code à modifier :
 

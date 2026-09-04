@@ -256,7 +256,11 @@ export default function LoginPage() {
         </Form>
       )}
 
-      <p className="texte-sm texte-doux">{LABELS.auth.membre.pasDeCompte}</p>
+      <p>
+        <Link className="lien" href="/inscription">
+          {LABELS.inscription.depuisConnexion}
+        </Link>
+      </p>
 
       <p>
         <Link className="lien" href="/connexion-pro">

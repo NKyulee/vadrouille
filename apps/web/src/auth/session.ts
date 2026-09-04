@@ -3,9 +3,13 @@ import type { Membre, Professionnel } from '../data/types.ts'
 
 export type Role = 'membre' | 'professionnel'
 
-export type Identite =
+/* L'adresse de connexion accompagne l'identité sans appartenir au profil :
+   elle vit dans auth.users, pas dans nos tables. La dupliquer en base ferait
+   deux sources pour la même information. */
+export type Identite = { email: string } & (
   | { role: 'membre'; profil: Membre }
   | { role: 'professionnel'; profil: Professionnel }
+)
 
 export interface Session {
   /** `undefined` tant qu'on n'a pas fini d'interroger l'API. */

@@ -12,6 +12,7 @@ import {
 } from 'react-aria-components'
 import Avatar from '../Avatar/Avatar.tsx'
 import {
+  changerEmail,
   changerMotDePasse,
   chercherAdresse,
   enregistrerProfilMembre,
@@ -32,14 +33,17 @@ function initiales(prenom: string, nom: string): string {
 
 interface Props {
   membre: Membre
+  /** Adresse de connexion, qui vit dans le compte et non dans le profil. */
+  email: string
   /** Recharge la session : le nom affiché partout doit suivre. */
   onEnregistre: () => Promise<void>
 }
 
-export default function MemberProfileForm({ membre, onEnregistre }: Props) {
+export default function MemberProfileForm({ membre, email, onEnregistre }: Props) {
   const [prenom, setPrenom] = useState(membre.prenom)
   const [nom, setNom] = useState(membre.nom)
   const [couleur, setCouleur] = useState<CouleurAvatar>(membre.couleur)
+  const [telephone, setTelephone] = useState(membre.telephone ?? '')
   const [issue, setIssue] = useState<{ texte: string; erreur: boolean } | null>(null)
   const [envoi, setEnvoi] = useState(false)
 
@@ -54,6 +58,19 @@ export default function MemberProfileForm({ membre, onEnregistre }: Props) {
   const [motDePasse, setMotDePasse] = useState('')
   const [issueMdp, setIssueMdp] = useState<{ texte: string; erreur: boolean } | null>(null)
 
+  const [nouvelEmail, setNouvelEmail] = useState(email)
+  const [issueEmail, setIssueEmail] = useState<{ texte: string; erreur: boolean } | null>(null)
+
+  const changerLAdresse = async () => {
+    setIssueEmail(null)
+    try {
+      await changerEmail(nouvelEmail)
+      setIssueEmail({ texte: LABELS.profil.emailConfirmationEnvoyee, erreur: false })
+    } catch {
+      setIssueEmail({ texte: LABELS.profil.echecEmail, erreur: true })
+    }
+  }
+
   const enregistrer = async () => {
     setEnvoi(true)
     setIssue(null)
@@ -64,6 +81,7 @@ export default function MemberProfileForm({ membre, onEnregistre }: Props) {
         nom: nom.trim(),
         initiales: initiales(prenom, nom),
         couleur,
+        telephone: telephone.trim(),
         ...(choisie
           ? { adresse: choisie.label, latitude: choisie.latitude, longitude: choisie.longitude }
           : {}),
@@ -128,6 +146,17 @@ export default function MemberProfileForm({ membre, onEnregistre }: Props) {
           </TextField>
         </div>
 
+        {/* Obligatoire à l'inscription, donc affiché comme tel ici aussi.
+            C'est le numéro par lequel l'association rappelle. */}
+        <TextField className="champ" isRequired type="tel" value={telephone} onChange={setTelephone}>
+          <Label className="champ__label">{LABELS.profil.telephone}</Label>
+          <Text slot="description" className="champ__aide">
+            {LABELS.profil.telephoneAide}
+          </Text>
+          <Input className="champ__saisie" inputMode="tel" autoComplete="tel" />
+          <FieldError className="champ__erreur">{LABELS.profil.requis}</FieldError>
+        </TextField>
+
         {/* La couleur porte un nom écrit : la pastille seule ne dirait rien à
             qui ne distingue pas les teintes. */}
         <RadioGroup
@@ -185,6 +214,39 @@ export default function MemberProfileForm({ membre, onEnregistre }: Props) {
         <div className="formulaire__actions">
           <Button type="submit" className="bouton" isDisabled={envoi}>
             {LABELS.profil.enregistrer}
+          </Button>
+        </div>
+      </Form>
+
+      <Form
+        className="formulaire"
+        validationBehavior="native"
+        onSubmit={(e) => {
+          e.preventDefault()
+          void changerLAdresse()
+        }}
+      >
+        <p className="champ__label">{LABELS.profil.emailTitre}</p>
+
+        <p role="status" className={issueEmail ? (issueEmail.erreur ? 'message-erreur' : 'message-issue') : 'hors-ecran'}>
+          {issueEmail?.texte ?? ''}
+        </p>
+
+        <TextField className="champ" isRequired type="email" value={nouvelEmail} onChange={setNouvelEmail}>
+          <Label className="champ__label">{LABELS.profil.email}</Label>
+          {/* L'adresse sert à se connecter : Supabase exige de confirmer la
+              nouvelle par courriel avant de l'appliquer. Sans vérification,
+              on pourrait inscrire une adresse qui n'est pas la sienne. */}
+          <Text slot="description" className="champ__aide">
+            {LABELS.profil.emailAide}
+          </Text>
+          <Input className="champ__saisie" autoComplete="username" />
+          <FieldError className="champ__erreur">{LABELS.profil.emailInvalide}</FieldError>
+        </TextField>
+
+        <div className="formulaire__actions">
+          <Button type="submit" className="bouton bouton--discret" isDisabled={nouvelEmail.trim() === email}>
+            {LABELS.profil.changerEmail}
           </Button>
         </div>
       </Form>

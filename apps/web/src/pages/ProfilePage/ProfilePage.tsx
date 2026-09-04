@@ -4,7 +4,7 @@ import ActivityCard from '../../components/ActivityCard/ActivityCard.tsx'
 import Avatar from '../../components/Avatar/Avatar.tsx'
 import MemberProfileForm from '../../components/MemberProfileForm/MemberProfileForm.tsx'
 
-import { useMembre, useSession } from '../../auth/session.ts'
+import { useIdentite, useMembre, useSession } from '../../auth/session.ts'
 import { useTitrePage } from '../../hooks/useTitrePage.ts'
 import { LABELS } from '../../labels.ts'
 import { appliquerTailleTexte, lireTailleTexte } from '../../preferences.ts'
@@ -19,6 +19,7 @@ export default function ProfilePage() {
   useTitrePage(LABELS.profil.titre)
 
   const membre = useMembre()
+  const identite = useIdentite()
   const { seDeconnecter, rafraichir } = useSession()
   const { mesSeances, nombre, estInscrit, basculer } = useInscriptions()
   const { activiteParId } = useCatalogue()
@@ -94,7 +95,7 @@ export default function ProfilePage() {
         {/* Le nom du compte vient de l'adresse électronique quand personne ne
             l'a renseigné : « Yunguyen94 » plutôt que « Yun ». D'où cet écran,
             qui laisse chacun se corriger sans passer par l'accueil. */}
-        <MemberProfileForm membre={membre} onEnregistre={rafraichir} />
+        <MemberProfileForm membre={membre} email={identite.email} onEnregistre={rafraichir} />
       </section>
 
       <section className="pile pile--sm" aria-labelledby="titre-compte">

@@ -144,6 +144,7 @@ async function peupler() {
     nom: MEMBRE.nom,
     initiales: MEMBRE.initiales,
     couleur_avatar: 'foret',
+    telephone: MEMBRE.telephone,
     membre_depuis: MEMBRE.membreDepuis,
   })
 

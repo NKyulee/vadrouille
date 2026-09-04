@@ -10,7 +10,7 @@ import type { CouleurAvatar } from '../data/types.ts'
    types du domaine. */
 interface ReponseProfil {
   role: 'membre' | 'professionnel'
-  profil: Record<string, string | null>
+  profil: Record<string, string | number | null>
 }
 
 function versIdentite(reponse: ReponseProfil, email: string): Identite {
@@ -25,6 +25,7 @@ function versIdentite(reponse: ReponseProfil, email: string): Identite {
 
   if (reponse.role === 'professionnel') {
     return {
+      email,
       role: 'professionnel',
       profil: {
         ...commun,
@@ -38,8 +39,16 @@ function versIdentite(reponse: ReponseProfil, email: string): Identite {
   }
 
   return {
+    email,
     role: 'membre',
-    profil: { ...commun, membreDepuis: p.membre_depuis ?? undefined },
+    profil: {
+      ...commun,
+      telephone: String(p.telephone ?? ''),
+      membreDepuis: p.membre_depuis ? String(p.membre_depuis) : undefined,
+      adresse: p.adresse ? String(p.adresse) : undefined,
+      latitude: p.latitude === null || p.latitude === undefined ? undefined : Number(p.latitude),
+      longitude: p.longitude === null || p.longitude === undefined ? undefined : Number(p.longitude),
+    },
   }
 }
 

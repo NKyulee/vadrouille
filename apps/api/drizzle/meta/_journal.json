@@ -92,6 +92,13 @@
       "when": 1788532111247,
       "tag": "0012_lieux_et_carte",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1788532111248,
+      "tag": "0013_telephone_membre",
+      "breakpoints": true
     }
   ]
 }

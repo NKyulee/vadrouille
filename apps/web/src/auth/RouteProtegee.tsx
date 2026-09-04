@@ -1,3 +1,4 @@
+import { Button } from 'react-aria-components'
 import { Navigate, Outlet, useLocation } from 'react-router'
 import { useSession } from './session.ts'
 import type { Role } from './session.ts'
@@ -10,7 +11,7 @@ import { LABELS } from '../labels.ts'
  * Contourner celle-ci ne donne accès à aucune donnée.
  */
 export default function RouteProtegee({ role }: { role?: Role }) {
-  const { identite, chargement } = useSession()
+  const { identite, profilManquant, chargement, seDeconnecter } = useSession()
   const { pathname } = useLocation()
 
   // Rien pendant la vérification : afficher l'écran de connexion puis le
@@ -20,6 +21,23 @@ export default function RouteProtegee({ role }: { role?: Role }) {
       <p className="conteneur conteneur--aere" role="status">
         {LABELS.auth.verification}
       </p>
+    )
+  }
+
+  /* Connecté mais sans profil : renvoyer vers la connexion ne servirait à
+     rien — elle réussirait, et on reviendrait ici. On l'explique et on offre
+     la seule sortie utile. */
+  if (profilManquant) {
+    return (
+      <div className="conteneur conteneur--aere pile pile--lg">
+        <h1>{LABELS.auth.profilManquantTitre}</h1>
+        <p>{LABELS.auth.profilManquantTexte}</p>
+        <p>
+          <Button className="bouton bouton--discret" onPress={() => void seDeconnecter()}>
+            {LABELS.auth.deconnexion}
+          </Button>
+        </p>
+      </div>
     )
   }
 

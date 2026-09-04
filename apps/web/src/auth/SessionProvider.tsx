@@ -57,6 +57,7 @@ const API = import.meta.env.VITE_API_URL ?? 'http://localhost:3000'
 export default function SessionProvider({ children }: { children: ReactNode }) {
   const [identite, setIdentite] = useState<Identite | undefined>(undefined)
   const [chargement, setChargement] = useState(true)
+  const [profilManquant, setProfilManquant] = useState(false)
 
   const rafraichir = useCallback(async () => {
     const { data } = await supabase.auth.getSession()
@@ -67,6 +68,7 @@ export default function SessionProvider({ children }: { children: ReactNode }) {
 
     if (!jeton) {
       setIdentite(undefined)
+      setProfilManquant(false)
       setChargement(false)
       return
     }
@@ -75,6 +77,8 @@ export default function SessionProvider({ children }: { children: ReactNode }) {
       const reponse = await fetch(`${API}/api/moi`, {
         headers: { Authorization: `Bearer ${jeton}` },
       })
+      // 404 : le jeton est valable, c'est le profil métier qui manque.
+      setProfilManquant(reponse.status === 404)
       setIdentite(
         reponse.ok ? versIdentite((await reponse.json()) as ReponseProfil, email) : undefined,
       )
@@ -82,6 +86,7 @@ export default function SessionProvider({ children }: { children: ReactNode }) {
       // API injoignable : on reste déconnecté plutôt que d'ouvrir des écrans
       // sur la foi d'un jeton qu'on n'a pas pu faire valider.
       setIdentite(undefined)
+      setProfilManquant(false)
     }
     setChargement(false)
   }, [])
@@ -104,11 +109,12 @@ export default function SessionProvider({ children }: { children: ReactNode }) {
   const seDeconnecter = useCallback(async () => {
     await supabase.auth.signOut()
     setIdentite(undefined)
+    setProfilManquant(false)
   }, [])
 
   const valeur = useMemo(
-    () => ({ identite, chargement, seDeconnecter, rafraichir }),
-    [identite, chargement, seDeconnecter, rafraichir],
+    () => ({ identite, profilManquant, chargement, seDeconnecter, rafraichir }),
+    [identite, profilManquant, chargement, seDeconnecter, rafraichir],
   )
 
   return <ContexteSession value={valeur}>{children}</ContexteSession>

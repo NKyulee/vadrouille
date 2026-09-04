@@ -402,6 +402,32 @@ Les champs de connexion des membres sont volontairement plus grands
 qu'ailleurs, et l'`autoComplete="one-time-code"` fait proposer le code du SMS
 au-dessus du clavier, sans le retaper.
 
+### Un compte crée son profil tout seul
+
+`auth.users` et les tables de profil sont deux choses distinctes. Un compte
+créé depuis le tableau de bord Supabase existait donc sans profil métier, et
+`/api/moi` renvoyait 404.
+
+Deux déclencheurs sur `auth.users` s'en chargent :
+
+| Déclencheur | Quand | Rôle |
+|---|---|---|
+| `profil_a_l_inscription` | `AFTER INSERT` | crée le profil, pose `role: membre` s'il manque |
+| `profil_suit_le_role` | `AFTER UPDATE OF raw_app_meta_data` | bascule vers `professionnel` quand le rôle change |
+
+Le second n'est pas une précaution : **GoTrue insère la ligne avant de
+fusionner `app_metadata`**. À l'insertion, `raw_app_meta_data ->> 'role'` est
+encore nul, et sans ce deuxième déclencheur tout le monde — professionnels
+compris — recevait un profil membre.
+
+Le profil membre créé par défaut n'est retiré que s'il est resté vierge :
+une personne peut être adhérente *et* intervenante, et on ne supprime pas des
+inscriptions au passage.
+
+Côté front, « connecté mais sans profil » est distinct de « pas connecté ».
+Confondre les deux renverrait vers l'écran de connexion, qui réussirait, qui
+renverrait encore — une boucle sans issue.
+
 ### Le rôle est dans `app_metadata`
 
 Jamais dans `user_metadata`, que l'utilisateur peut modifier lui-même : il s'y

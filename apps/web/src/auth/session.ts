@@ -10,6 +10,11 @@ export type Identite =
 export interface Session {
   /** `undefined` tant qu'on n'a pas fini d'interroger l'API. */
   identite: Identite | undefined
+  /* Connecté, mais sans profil métier : le compte existe dans Supabase Auth
+     et rien ne lui correspond dans `membre` ni `professionnel`. Distinct de
+     « pas connecté » — sans quoi on renverrait vers l'écran de connexion,
+     qui réussirait, qui renverrait encore : une boucle sans issue. */
+  profilManquant: boolean
   /** Vrai pendant la vérification initiale : ne rien afficher avant. */
   chargement: boolean
   seDeconnecter: () => Promise<void>

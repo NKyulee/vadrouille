@@ -101,6 +101,9 @@ export const LABELS = {
 
   auth: {
     verification: 'Vérification de votre session…',
+    profilManquantTitre: 'Votre compte n’est pas encore rattaché',
+    profilManquantTexte:
+      'La connexion a fonctionné, mais aucun profil n’est associé à ce compte. Passez à l’accueil : on le rattache en une minute.',
     titreMembre: 'Se connecter',
     titrePro: 'Espace professionnel',
 

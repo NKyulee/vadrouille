@@ -31,6 +31,7 @@ export const LABELS = {
     aide: 'Aide',
     profil: 'Profil',
     evitement: 'Aller au contenu',
+    chargement: 'Chargement de la page…',
   },
 
   accueil: {

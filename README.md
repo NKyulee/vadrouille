@@ -737,6 +737,48 @@ La suppression passe par `ConfirmDialog`, qui s'appuie sur `Modal` +
 déclencheur, Échap, inertie du reste de la page. Le focus initial est sur
 **Annuler**, jamais sur l'action destructrice.
 
+## Découpage par route
+
+Le bundle atteignait 958 ko d'un bloc : tout le monde payait Leaflet et
+l'espace professionnel, y compris pour ouvrir l'écran de connexion.
+
+`routes.tsx` utilise le `lazy` de React Router. Ce qui reste chargé d'emblée
+est ce que tout le monde traverse — connexion, coque, accueil, programme. Le
+reste arrive à la première visite.
+
+| | Avant | Après |
+|---|---|---|
+| Premier affichage | 958 ko | **645 ko** |
+| Différé | — | 302 ko |
+| CSS au démarrage | 53 ko | **22 ko** |
+
+Les deux gros gains sont **Leaflet** (153 ko + 18 ko de CSS), que seule la
+carte utilise, et le **formulaire d'activité** (90 ko), réservé aux
+professionnels.
+
+Ce qui reste au démarrage est difficilement compressible : React, React
+Router, le socle de React Aria, et le client Supabase — ce dernier est
+nécessaire dès le premier écran pour vérifier la session.
+
+### Deux pièges
+
+`lazy` de React Router renvoie un **objet de route partiel** : nos pages ont
+un export par défaut, qu'il ne devine pas. D'où l'assistant `page()` en tête
+de fichier.
+
+`React.lazy` aurait exigé une frontière `<Suspense>` au-dessus — sans elle,
+React lève. C'est pourquoi la coque professionnelle passe par le `lazy` de la
+route (`ProEspace.tsx`, qui réunit la coque et ses fournisseurs d'état) et non
+par `React.lazy`.
+
+### L'attente doit se voir
+
+Une route différée **bloque la navigation** le temps de charger son module.
+Sans repère, l'interface paraît figée et l'on reclique. Un bandeau
+`role="status"` apparaît pendant le chargement : il l'annonce aussi aux
+lecteurs d'écran, qui n'ont aucun autre indice. Sa hauteur est fixe au repos
+pour ne pas décaler la mise en page en apparaissant.
+
 ## Adaptation aux écrans
 
 Mobile d'abord, avec trois seuils. Ils sont déclarés une fois dans la map

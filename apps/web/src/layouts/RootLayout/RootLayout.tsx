@@ -1,4 +1,4 @@
-import { Outlet } from 'react-router'
+import { Outlet, useNavigation } from 'react-router'
 import NavItem from '../../components/NavItem/NavItem.tsx'
 import { LABELS } from '../../labels.ts'
 
@@ -11,6 +11,12 @@ const NAV_ITEMS = [
 ]
 
 export default function RootLayout() {
+  /* Les routes différées bloquent la navigation le temps de charger leur
+     module. Sans repère, l'interface paraît figée — et sur une connexion
+     lente, on reclique. Le `role="status"` l'annonce aussi aux lecteurs
+     d'écran, qui n'ont aucun autre indice. */
+  const { state } = useNavigation()
+
   /* Un seul DOM pour tous les écrans, redistribué par le SCSS : barre du bas
      sur téléphone, rail latéral à partir de 62em. Pas de rendu conditionnel —
      deux arbres à maintenir finiraient par diverger, et le basculement au
@@ -34,6 +40,13 @@ export default function RootLayout() {
       <header className="coque__entete">
         <span className="coque__marque">{LABELS.app.nom}</span>
       </header>
+
+      <div
+        className="coque__attente"
+        data-active={state === 'loading' || undefined}
+        role="status"
+        aria-label={state === 'loading' ? LABELS.nav.chargement : undefined}
+      />
 
       <main id="contenu" className="coque__contenu" tabIndex={-1}>
         <Outlet />

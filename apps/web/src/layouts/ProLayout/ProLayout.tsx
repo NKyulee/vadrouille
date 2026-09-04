@@ -1,5 +1,5 @@
 import { Button } from 'react-aria-components'
-import { Outlet } from 'react-router'
+import { Outlet, useNavigation } from 'react-router'
 import NavItem from '../../components/NavItem/NavItem.tsx'
 import { useSession } from '../../auth/session.ts'
 import { LABELS } from '../../labels.ts'
@@ -12,6 +12,7 @@ const NAV_ITEMS = [
 
 export default function ProLayout() {
   const { seDeconnecter } = useSession()
+  const { state } = useNavigation()
 
   /* Même coque que l'espace membre — entête, contenu, barre du bas qui
      devient rail sur grand écran — avec un entête coloré pour qu'on voie
@@ -34,6 +35,13 @@ export default function ProLayout() {
           {LABELS.auth.deconnexion}
         </Button>
       </header>
+
+      <div
+        className="coque__attente"
+        data-active={state === 'loading' || undefined}
+        role="status"
+        aria-label={state === 'loading' ? LABELS.nav.chargement : undefined}
+      />
 
       <main id="contenu" className="coque__contenu" tabIndex={-1}>
         <Outlet />

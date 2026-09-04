@@ -1,8 +1,8 @@
-/* Point d'entrée unique des données : types, utilitaires de date et
-   sélecteurs. Évite aux pages de savoir si une fonction vient de `dates.ts`
-   ou de `mock.ts` — et le jour où `mock.ts` devient un client d'API, seul ce
-   fichier change. */
+/* Point d'entrée des données : types, dates, monnaie, référence et requêtes.
+   Les pages importent d'ici, jamais d'un fichier précis — c'est ce qui a
+   permis de remplacer les données factices par Supabase sans les toucher. */
 export * from './dates.ts'
 export * from './monnaie.ts'
-export * from './mock.ts'
+export * from './reference.ts'
+export * from './requetes.ts'
 export type * from './types.ts'

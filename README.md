@@ -482,6 +482,64 @@ distingue un refus d'une panne : `VD001` séance complète, `VD002` introuvable,
 personne n'y accède, même si un `GRANT` était ajouté par mégarde plus tard.
 Seule `emettre_facture()` y touche.
 
+## D'où viennent les données
+
+`data/requetes.ts` interroge **Supabase directement depuis le navigateur**,
+sans passer par l'API Express. Ce n'est pas un raccourci : le RLS s'applique
+de toute façon, et une couche d'API qui relaierait les mêmes requêtes
+n'ajouterait qu'un endroit de plus où oublier un filtre. L'API garde `/api/moi`
+— la seule chose qu'on ne veut pas laisser le navigateur décider.
+
+Il reste des données en dur, dans `data/reference.ts` : les jours de la
+semaine, les catégories, les numéros d'urgence. Une table pour sept jours
+serait une jointure gratuite à chaque requête.
+
+### Combien, et qui
+
+Le RLS ne montre à un membre que **ses propres** réservations. Sans
+précaution, il ne saurait donc pas s'il reste de la place sur une séance
+qu'il n'a pas rejointe. D'où deux vues, parce que les deux informations n'ont
+pas la même sensibilité :
+
+| Vue | Contenu | Qui y accède |
+|---|---|---|
+| `seance_occupation` | places prises / total | tout le monde : un décompte n'est pas une donnée personnelle |
+| `seance_participant` | qui est inscrit | seulement si on est soi-même sur la séance, ou si on en est le professionnel |
+
+Conséquence assumée : sur le programme, on voit « 7 places libres » mais pas
+les visages. Les avatars apparaissent une fois inscrit. C'est le prolongement
+direct de « on ne voit que les gens qu'on croise ».
+
+**PostgREST ne sait pas embarquer une vue** dans une requête : il lui faut une
+clé étrangère détectable, et une vue n'en a pas. `seance_occupation` porte
+donc l'activité et la date, et se lit seule — on n'interroge plus la table
+`seance` côté front.
+
+### Chargement et échecs
+
+Les trois contextes exposent désormais `chargement` et, pour les
+inscriptions, `erreur`. Ce n'était pas nécessaire tant que tout tenait en
+mémoire.
+
+L'échec qui compte : la dernière place peut partir **entre l'affichage et le
+clic**. Le déclencheur de capacité renvoie alors `VD001`, que
+`data/requetes.ts` traduit en `SeanceComplete`. Le contexte le rattrape et le
+présente comme un refus normal dans une région `role="alert"` — une promesse
+rejetée depuis un gestionnaire de clic passerait inaperçue, et l'utilisateur
+resterait devant un bouton qui « ne fait rien ».
+
+Après chaque écriture, on **relit** plutôt que de rapiécer l'état local : la
+base recalcule les séances, les occupations et les participants, et deviner
+ces effets côté client finirait par diverger.
+
+### Supprimer une activité déjà facturée échoue
+
+`facture` référence `reservation` en `on delete restrict`. Supprimer une
+activité dont une séance porte une facture émise est donc refusé par la base
+— c'est voulu, une pièce comptable ne s'efface pas. Le bouton *Supprimer* de
+l'espace professionnel remonte l'erreur telle quelle ; il reste à en faire un
+message clair et à proposer l'avoir.
+
 ## Les deux espaces
 
 `RootLayout` (membre) et `ProLayout` (professionnel) partagent la même coque —
@@ -676,7 +734,7 @@ src/
   preferences.ts              préférences d'affichage, gardées sur l'appareil
   hooks/useTitrePage.ts       titre de l'onglet, une ligne par page
   state/                      état partagé : catalogue, inscriptions, espace pro
-  data/                       types, dates, données factices (index.ts = entrée)
+  data/                       types, dates, monnaie, référence, requêtes Supabase
   styles/                     jetons, mixins, reset, primitives
   components/<Nom>/<Nom>.tsx  un composant par dossier, avec son .scss
   layouts/AriaRouterLayout/   pont React Aria <-> React Router

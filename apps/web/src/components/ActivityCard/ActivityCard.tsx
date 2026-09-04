@@ -1,6 +1,7 @@
 import { Button, Link } from 'react-aria-components'
 import AvatarGroup from '../AvatarGroup/AvatarGroup.tsx'
-import { CATEGORIES, membresParIds, placesRestantes } from '../../data/mock.ts'
+import { CATEGORIES } from '../../data/index.ts'
+import { useCatalogue } from '../../state/catalogue.ts'
 import { LABELS } from '../../labels.ts'
 import type { Activite, Seance } from '../../data/types.ts'
 import './ActivityCard.scss'
@@ -23,9 +24,13 @@ export default function ActivityCard({
   onBasculerInscription,
   montrerDate = false,
 }: ActivityCardProps) {
+  const { participantsDe } = useCatalogue()
   const categorie = CATEGORIES[activite.categorie]
-  const participants = membresParIds(seance.participants)
-  const restantes = placesRestantes(seance)
+  /* Vide tant qu'on n'est pas soi-même inscrit : on ne découvre les
+     participants qu'une fois qu'on les croise. Le décompte, lui, est
+     toujours connu. */
+  const participants = participantsDe(seance.id)
+  const restantes = Math.max(0, seance.placesTotal - seance.placesPrises)
   const complet = restantes === 0 && !inscrit
 
   return (

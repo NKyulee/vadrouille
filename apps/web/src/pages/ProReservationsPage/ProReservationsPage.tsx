@@ -4,7 +4,7 @@ import {
   StatutFactureBadge,
   StatutReservationBadge,
 } from '../../components/StatutBadge/StatutBadge.tsx'
-import { formaterCentimes, membreParId } from '../../data/index.ts'
+import { formaterCentimes } from '../../data/index.ts'
 import { useTitrePage } from '../../hooks/useTitrePage.ts'
 import { LABELS } from '../../labels.ts'
 import { useCatalogue } from '../../state/catalogue.ts'
@@ -14,7 +14,7 @@ import './ProReservationsPage.scss'
 export default function ProReservationsPage() {
   useTitrePage(LABELS.pro.reservations.titre)
 
-  const { duProfessionnel, activiteParId, seanceParId } = useCatalogue()
+  const { duProfessionnel, activiteParId, seanceParId, participantsDe } = useCatalogue()
   const { profil, pourActivites, resteAEncaisser } = usePro()
 
   const mesActivites = duProfessionnel(profil.id)
@@ -34,10 +34,12 @@ export default function ProReservationsPage() {
       {reservations.length > 0 ? (
         <ul role="list" className="pile pile--sm">
           {reservations.map((reservation) => {
-            const membre = membreParId(reservation.membreId)
             const seance = seanceParId(reservation.seanceId)
             const activite = activiteParId(seance?.activiteId)
-            if (!membre || !seance || !activite) return null
+            if (!seance || !activite) return null
+            // Le professionnel voit les participants de ses propres séances.
+            const membre = participantsDe(seance.id).find((m) => m.id === reservation.membreId)
+            if (!membre) return null
             return (
               <li key={reservation.id} className="reservation">
                 <Avatar initiales={membre.initiales} couleur={membre.couleur} />
@@ -58,13 +60,17 @@ export default function ProReservationsPage() {
                   <p className="texte-sm texte-doux">
                     {LABELS.pro.reservations.seanceDu(LABELS.commun.dateCourte(seance.date))}{' '}
                     · {LABELS.pro.reservations.personnes(reservation.personnes)} ·{' '}
-                    {formaterCentimes(reservation.facture.montantCentimes)}
+                    {formaterCentimes(reservation.facture?.montantCentimes ?? 0)}
                   </p>
                 </div>
 
                 <div className="reservation__statuts">
                   <StatutReservationBadge statut={reservation.statut} />
-                  <StatutFactureBadge statut={reservation.facture.statut} />
+                  {reservation.facture ? (
+                    <StatutFactureBadge statut={reservation.facture.statut} />
+                  ) : (
+                    <StatutFactureBadge statut="a-emettre" />
+                  )}
                 </div>
               </li>
             )

@@ -237,8 +237,9 @@ export const LABELS = {
       emiseLe: 'Émise le',
       payeeLe: 'Réglée le',
       emettre: 'Émettre la facture',
+      aEmettre: (montant: string) => `${montant} à facturer. La facture recevra son numéro à l'émission.`,
       marquerPayee: 'Marquer comme réglée',
-      rouvrir: 'Annuler la facture',
+      immuable: "Une facture réglée ne se modifie plus : la corriger demande un avoir.",
       gratuite: "Cette séance est gratuite : il n'y a rien à facturer.",
     },
 
@@ -269,6 +270,11 @@ export const LABELS = {
       enregistrer: 'Enregistrer',
       enregistre: 'Vos informations ont été enregistrées.',
     },
+  },
+
+  inscriptions: {
+    complete: "Cette séance vient d'afficher complet. Essayez une autre date.",
+    echec: "L'inscription n'a pas pu être enregistrée. Réessayez dans un instant.",
   },
 
   contacts: {

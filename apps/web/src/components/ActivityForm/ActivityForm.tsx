@@ -15,7 +15,8 @@ import {
   TextArea,
   TextField,
 } from 'react-aria-components'
-import { CATEGORIES, JOURS, MEMBRES } from '../../data/mock.ts'
+import { CATEGORIES, JOURS } from '../../data/index.ts'
+import { useCatalogue } from '../../state/catalogue.ts'
 import { centimesVersEuros, eurosVersCentimes } from '../../data/monnaie.ts'
 import { LABELS } from '../../labels.ts'
 import type { Activite, CategorieId, JourId } from '../../data/types.ts'
@@ -33,7 +34,7 @@ export interface ChampsActivite {
   categorie: CategorieId
   prixCentimes: number
   placesParDefaut: number
-  responsableId: string
+  responsableId: string | undefined
 }
 
 const VIDE: ChampsActivite = {
@@ -46,7 +47,7 @@ const VIDE: ChampsActivite = {
   categorie: 'atelier',
   prixCentimes: 0,
   placesParDefaut: 10,
-  responsableId: MEMBRES[0].id,
+  responsableId: undefined,
 }
 
 function depuisActivite(activite: Activite): ChampsActivite {
@@ -73,6 +74,13 @@ interface ActivityFormProps {
 }
 
 export default function ActivityForm({ activite, onEnregistrer, onAnnuler }: ActivityFormProps) {
+  /* Les responsables proposés sont les membres qu'on croise : la base ne
+     laisse pas voir les autres, et désigner quelqu'un qu'on ne connaît pas
+     n'aurait pas de sens. */
+  const { participantsDe, seances } = useCatalogue()
+  const responsablesPossibles = [
+    ...new Map(seances.flatMap((s) => participantsDe(s.id)).map((m) => [m.id, m])).values(),
+  ]
   const [valeurs, setValeurs] = useState<ChampsActivite>(() =>
     activite ? depuisActivite(activite) : VIDE,
   )
@@ -229,8 +237,8 @@ export default function ActivityForm({ activite, onEnregistrer, onAnnuler }: Act
 
       <Select
         className="champ"
-        selectedKey={valeurs.responsableId}
-        onSelectionChange={(cle) => modifier('responsableId', String(cle))}
+        selectedKey={valeurs.responsableId ?? null}
+        onSelectionChange={(cle) => modifier('responsableId', cle ? String(cle) : undefined)}
       >
         <Label className="champ__label">{LABELS.pro.formulaire.responsable}</Label>
         <Button className="champ__saisie champ__declencheur">
@@ -239,7 +247,7 @@ export default function ActivityForm({ activite, onEnregistrer, onAnnuler }: Act
         </Button>
         <Popover className="liste-deroulante">
           <ListBox>
-            {MEMBRES.map((membre) => (
+            {responsablesPossibles.map((membre) => (
               <ListBoxItem key={membre.id} id={membre.id} className="liste-deroulante__option">
                 {membre.prenom} {membre.nom}
               </ListBoxItem>

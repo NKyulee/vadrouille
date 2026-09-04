@@ -19,6 +19,7 @@ export type CategorieId = 'atelier' | 'sortie' | 'jeu' | 'sport' | 'partage'
 export type CouleurAvatar = 'foret' | 'or' | 'brique' | 'ardoise' | 'prune'
 
 export interface Membre {
+  /** Identifiant Supabase (auth.users.id). */
   id: string
   prenom: string
   nom: string
@@ -40,12 +41,12 @@ export interface Activite {
   heure: string
   dureeMinutes: number
   lieu: string
-  /** Structure ou personne à l'origine de l'activité. */
+  /** Professionnel propriétaire. Seul lui peut la modifier. */
+  professionnelId: string
+  /** Raison sociale du propriétaire, lue via `professionnel_public`. */
   proposePar: string
-  /** Professionnel propriétaire, s'il y en a un. Seul lui peut la modifier. */
-  professionnelId?: string
-  /** Membre qui anime et reste le contact le jour même (voir MEMBRES). */
-  responsableId: string
+  /** Membre qui anime et reste le contact le jour même. */
+  responsableId?: string
   /** Prix de la séance, **en centimes**. 0 = gratuit. Voir monnaie.ts. */
   prixCentimes: number
   categorie: CategorieId
@@ -68,11 +69,10 @@ export interface Seance {
   date: string
   /** Capacité de cette occurrence précise. */
   placesTotal: number
-  /** Membres inscrits à cette occurrence (voir MEMBRES). */
-  participants: string[]
-  /** Amorce de l'inscription du membre courant. L'état vivant est dans le
-      contexte Inscriptions — ne pas lire ce champ dans un composant. */
-  inscritParDefaut: boolean
+  /* Nombre de places occupées, lu depuis la vue `seance_occupation`.
+     L'identité des inscrits est une donnée personnelle et vit ailleurs
+     (`seance_participant`) ; un décompte n'en est pas une. */
+  placesPrises: number
 }
 
 export interface Contact {
@@ -131,5 +131,6 @@ export interface Reservation {
   /** Une réservation peut couvrir un accompagnant. */
   personnes: number
   statut: StatutReservation
-  facture: Facture
+  /** Absente pour une séance gratuite : il n'y a rien à facturer. */
+  facture?: Facture
 }

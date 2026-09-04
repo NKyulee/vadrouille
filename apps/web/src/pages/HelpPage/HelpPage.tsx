@@ -1,6 +1,6 @@
 import { Link } from 'react-aria-components'
 import Avatar from '../../components/Avatar/Avatar.tsx'
-import { CONTACTS } from '../../data/mock.ts'
+import { CONTACTS } from '../../data/index.ts'
 import { useTitrePage } from '../../hooks/useTitrePage.ts'
 import { LABELS } from '../../labels.ts'
 import type { Contact } from '../../data/types.ts'

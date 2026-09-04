@@ -19,13 +19,18 @@ export default function ActivitiesPage() {
   const jours = prochainsJours(aujourdhui, 7)
 
   const { duJour, activiteParId } = useCatalogue()
-  const { estInscrit, basculer } = useInscriptions()
+  const { estInscrit, basculer, erreur } = useInscriptions()
 
   const libelle = (iso: string) => JOURS.find((j) => j.id === jourDe(iso))
 
   return (
     <div className="pile pile--lg">
       <h1>{LABELS.activites.titre}</h1>
+
+      {/* role="alert" : un refus doit être annoncé, pas seulement affiché. */}
+      <p role="alert" className={erreur ? 'message-erreur' : 'hors-ecran'}>
+        {erreur ?? ''}
+      </p>
 
       {/* Un vrai tablist : les jours changent un panneau dans la même page,
           sans changer d'URL. React Aria fournit gratuitement les flèches

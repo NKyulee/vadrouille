@@ -2,14 +2,7 @@ import { Button, Link } from 'react-aria-components'
 import { useParams } from 'react-router'
 import Avatar from '../../components/Avatar/Avatar.tsx'
 import AvatarGroup from '../../components/AvatarGroup/AvatarGroup.tsx'
-import {
-  CATEGORIES,
-  JOURS,
-  formaterCentimes,
-  membreParId,
-  membresParIds,
-  placesRestantes,
-} from '../../data/index.ts'
+import { CATEGORIES, JOURS, formaterCentimes } from '../../data/index.ts'
 import { useTitrePage } from '../../hooks/useTitrePage.ts'
 import { LABELS } from '../../labels.ts'
 import { useCatalogue } from '../../state/catalogue.ts'
@@ -48,12 +41,19 @@ export default function ActivityDetailPage() {
 function Detail({ activite }: { activite: Activite }) {
   useTitrePage(activite.titre)
 
-  const { seancesDe } = useCatalogue()
-  const { estInscrit, basculer } = useInscriptions()
+  const { seancesDe, participantsDe } = useCatalogue()
+  const { estInscrit, basculer, erreur } = useInscriptions()
 
   const categorie = CATEGORIES[activite.categorie]
   const jour = JOURS.find((j) => j.id === activite.jour)
-  const responsable = membreParId(activite.responsableId)
+  /* Le responsable n'est visible que si on le croise : la base ne renvoie
+     pas les membres qu'on ne partage avec personne. Absent, on n'affiche
+     simplement pas la section. */
+  const responsable = activite.responsableId
+    ? seancesDe(activite.id)
+        .flatMap((s) => participantsDe(s.id))
+        .find((m) => m.id === activite.responsableId)
+    : undefined
   const seances = seancesDe(activite.id)
 
   return (
@@ -136,13 +136,17 @@ function Detail({ activite }: { activite: Activite }) {
           {LABELS.detail.prochainesSeances}
         </h2>
 
+        <p role="alert" className={erreur ? 'message-erreur' : 'hors-ecran'}>
+          {erreur ?? ''}
+        </p>
+
         {seances.length > 0 ? (
           <ul role="list" className="pile pile--sm">
             {seances.map((seance) => {
               const inscrit = estInscrit(seance.id)
-              const restantes = placesRestantes(seance)
+              const restantes = Math.max(0, seance.placesTotal - seance.placesPrises)
               const complet = restantes === 0 && !inscrit
-              const participants = membresParIds(seance.participants)
+              const participants = participantsDe(seance.id)
 
               return (
                 <li key={seance.id} className="seance" data-inscrit={inscrit || undefined}>

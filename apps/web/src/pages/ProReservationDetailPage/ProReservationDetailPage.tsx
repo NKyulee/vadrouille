@@ -5,7 +5,7 @@ import {
   StatutFactureBadge,
   StatutReservationBadge,
 } from '../../components/StatutBadge/StatutBadge.tsx'
-import { formaterCentimes, membreParId } from '../../data/index.ts'
+import { formaterCentimes } from '../../data/index.ts'
 import { useTitrePage } from '../../hooks/useTitrePage.ts'
 import { LABELS } from '../../labels.ts'
 import { useCatalogue } from '../../state/catalogue.ts'
@@ -29,20 +29,22 @@ function Introuvable() {
 
 export default function ProReservationDetailPage() {
   const { id } = useParams()
-  const { parId: reservationParId, changerStatut, changerStatutFacture } = usePro()
-  const { activiteParId, seanceParId } = useCatalogue()
+  const { parId, changerStatut, emettre, marquerPayee } = usePro()
+  const { activiteParId, seanceParId, participantsDe } = useCatalogue()
 
-  const reservation = reservationParId(id)
+  const reservation = parId(id)
   const seance = seanceParId(reservation?.seanceId)
   const activite = activiteParId(seance?.activiteId)
-  const membre = reservation ? membreParId(reservation.membreId) : undefined
+  const membre = seance
+    ? participantsDe(seance.id).find((m) => m.id === reservation?.membreId)
+    : undefined
 
-  useTitrePage(reservation && membre ? `${LABELS.pro.detail.titre} — ${membre.prenom}` : undefined)
+  useTitrePage(membre ? `${LABELS.pro.detail.titre} — ${membre.prenom}` : undefined)
 
-  if (!reservation || !seance || !activite || !membre) return <Introuvable />
+  if (!reservation || !seance || !activite) return <Introuvable />
 
   const { facture } = reservation
-  const gratuite = facture.montantCentimes === 0
+  const gratuite = activite.prixCentimes === 0
 
   return (
     <div className="pile pile--lg">
@@ -53,11 +55,11 @@ export default function ProReservationDetailPage() {
       </p>
 
       <header className="rangee rangee--sm">
-        <Avatar initiales={membre.initiales} couleur={membre.couleur} taille="lg" />
+        {membre ? (
+          <Avatar initiales={membre.initiales} couleur={membre.couleur} taille="lg" />
+        ) : null}
         <div>
-          <h1>
-            {membre.prenom} {membre.nom}
-          </h1>
+          <h1>{membre ? `${membre.prenom} ${membre.nom}` : LABELS.pro.detail.titre}</h1>
           <p className="texte-doux">{activite.titre}</p>
         </div>
       </header>
@@ -91,14 +93,14 @@ export default function ProReservationDetailPage() {
           <Button
             className="bouton"
             isDisabled={reservation.statut === 'confirmee'}
-            onPress={() => changerStatut(reservation.id, 'confirmee')}
+            onPress={() => void changerStatut(reservation.id, 'confirmee')}
           >
             {LABELS.pro.detail.confirmer}
           </Button>
           <Button
             className="bouton bouton--discret"
             isDisabled={reservation.statut === 'annulee'}
-            onPress={() => changerStatut(reservation.id, 'annulee')}
+            onPress={() => void changerStatut(reservation.id, 'annulee')}
           >
             {LABELS.pro.detail.annuler}
           </Button>
@@ -112,6 +114,19 @@ export default function ProReservationDetailPage() {
 
         {gratuite ? (
           <p className="carte texte-doux">{LABELS.pro.detail.gratuite}</p>
+        ) : !facture ? (
+          /* Pas encore de facture : elle n'existe qu'à partir de son
+             émission, avec son numéro. Rien n'est créé « à blanc ». */
+          <>
+            <p className="carte texte-doux">
+              {LABELS.pro.detail.aEmettre(formaterCentimes(activite.prixCentimes * reservation.personnes))}
+            </p>
+            <div className="rangee rangee--xs">
+              <Button className="bouton" onPress={() => void emettre(reservation.id)}>
+                {LABELS.pro.detail.emettre}
+              </Button>
+            </div>
+          </>
         ) : (
           <>
             <dl className="fiche">
@@ -143,32 +158,21 @@ export default function ProReservationDetailPage() {
               ) : null}
             </dl>
 
-            {/* Une seule progression possible à la fois : les boutons hors
-                de l'étape courante sont désactivés plutôt que masqués, pour
-                que la suite du parcours reste lisible. */}
+            {/* Aucun retour en arrière : une facture émise est une pièce
+                comptable, la base refuse d'en changer le numéro ou le
+                montant. On la corrige par un avoir — à implémenter. */}
             <div className="rangee rangee--xs rangee--repli">
               <Button
                 className="bouton"
-                isDisabled={facture.statut !== 'a-emettre'}
-                onPress={() => changerStatutFacture(reservation.id, 'emise')}
-              >
-                {LABELS.pro.detail.emettre}
-              </Button>
-              <Button
-                className="bouton"
                 isDisabled={facture.statut !== 'emise'}
-                onPress={() => changerStatutFacture(reservation.id, 'payee')}
+                onPress={() => void marquerPayee(reservation.id)}
               >
                 {LABELS.pro.detail.marquerPayee}
               </Button>
-              <Button
-                className="bouton bouton--discret"
-                isDisabled={facture.statut === 'a-emettre'}
-                onPress={() => changerStatutFacture(reservation.id, 'a-emettre')}
-              >
-                {LABELS.pro.detail.rouvrir}
-              </Button>
             </div>
+            {facture.statut === 'payee' ? (
+              <p className="texte-sm texte-doux">{LABELS.pro.detail.immuable}</p>
+            ) : null}
           </>
         )}
       </section>

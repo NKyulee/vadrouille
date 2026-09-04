@@ -122,6 +122,8 @@ async function peupler() {
     membre_depuis: MEMBRE.membreDepuis,
   })
 
+  await peuplerDomaine(pro.id, membre.id)
+
   console.log('Comptes de démonstration prêts :')
   console.log(`  membre        ${membre.email ?? MEMBRE.email}  (code par courriel)`)
   if (membre.phone) console.log(`                +${membre.phone}  (code SMS, si activé)`)
@@ -132,5 +134,119 @@ async function peupler() {
   }
 }
 
+
+/* --- Domaine ----------------------------------------------------------------
+   Un programme d'exemple pour que les écrans montrent quelque chose. Les
+   séances ne sont pas insérées à la main : c'est `generer_seances()` en base
+   qui les produit, comme en production. */
+
+const ACTIVITES = [
+  { titre: 'Atelier aquarelle', jour: 'lundi', heure: '10:00', duree: 90, lieu: 'Salle Jaurès',
+    categorie: 'atelier', prix: 400, places: 10,
+    description: 'Paysages au lavis. Le matériel est fourni, aucun niveau requis.' },
+  { titre: 'Café des voisins', jour: 'lundi', heure: '15:30', duree: 60, lieu: 'La vadrouille — accueil',
+    categorie: 'partage', prix: 0, places: 12,
+    description: 'On se retrouve pour parler de tout et de rien, sans programme.' },
+  { titre: 'Gymnastique douce', jour: 'mardi', heure: '09:30', duree: 45, lieu: 'Gymnase Colette',
+    categorie: 'sport', prix: 300, places: 15,
+    description: 'Assis ou debout, chacun à son rythme. Prévoir une bouteille d’eau.' },
+  { titre: 'Tarot', jour: 'mardi', heure: '14:00', duree: 120, lieu: 'Salle Jaurès',
+    categorie: 'jeu', prix: 0, places: 12,
+    description: 'Trois tables, débutants bienvenus — on réexplique les annonces.' },
+  { titre: 'Marché de Belleville', jour: 'mercredi', heure: '10:00', duree: 120, lieu: 'Rendez-vous à l’accueil',
+    categorie: 'sortie', prix: 0, places: 8,
+    description: 'Départ groupé, retour vers midi. Trajet à plat.' },
+  { titre: 'Chorale', jour: 'mercredi', heure: '16:00', duree: 90, lieu: 'Salle Jaurès',
+    categorie: 'atelier', prix: 200, places: 20,
+    description: 'Chansons françaises. On reprend « Les Copains d’abord ».' },
+  { titre: 'Initiation au smartphone', jour: 'jeudi', heure: '10:30', duree: 60, lieu: 'Salle informatique',
+    categorie: 'atelier', prix: 0, places: 6,
+    description: 'Appels vidéo et photos. Venir avec son téléphone si possible.' },
+  { titre: 'Scrabble', jour: 'jeudi', heure: '14:30', duree: 90, lieu: 'La vadrouille — accueil',
+    categorie: 'jeu', prix: 0, places: 10,
+    description: 'Parties en duo. Un dictionnaire est à disposition.' },
+  { titre: 'Cuisine partagée', jour: 'vendredi', heure: '11:00', duree: 150, lieu: 'Cuisine de La vadrouille',
+    categorie: 'partage', prix: 600, places: 8,
+    description: 'On prépare le repas ensemble, et on le mange ensemble.' },
+  { titre: 'Cinéma du vendredi', jour: 'vendredi', heure: '17:00', duree: 120, lieu: 'Salle Jaurès',
+    categorie: 'sortie', prix: 300, places: 25,
+    description: 'Projection sous-titrée, suivie d’une discussion libre.' },
+  { titre: 'Jardin partagé', jour: 'samedi', heure: '10:00', duree: 120, lieu: 'Jardin, rue des Cascades',
+    categorie: 'sortie', prix: 0, places: 10,
+    description: 'Plantation des semis de printemps. Gants fournis.' },
+  { titre: 'Thé musical', jour: 'dimanche', heure: '15:00', duree: 90, lieu: 'La vadrouille — accueil',
+    categorie: 'partage', prix: 200, places: 15,
+    description: 'Écoute commentée. Ce mois-ci : les valses de Chopin.' },
+] as const
+
+async function peuplerDomaine(proId: string, membreId: string) {
+  const { count } = await supabaseAdmin
+    .from('activite')
+    .select('*', { count: 'exact', head: true })
+    .eq('professionnel_id', proId)
+
+  if (count && count > 0) {
+    console.log(`  (${count} activité(s) déjà en base — domaine inchangé)`)
+    return
+  }
+
+  for (const a of ACTIVITES) {
+    const { data, error } = await supabaseAdmin
+      .from('activite')
+      .insert({
+        professionnel_id: proId,
+        titre: a.titre,
+        description: a.description,
+        jour: a.jour,
+        heure: a.heure,
+        duree_minutes: a.duree,
+        lieu: a.lieu,
+        categorie: a.categorie,
+        prix_centimes: a.prix,
+        places_par_defaut: a.places,
+        responsable_id: membreId,
+      })
+      .select('id')
+      .single()
+    if (error) throw error
+
+    /* Les séances passent par la fonction de la base — même chemin qu'en
+       production. `generer_seances` vérifie que l'appelant est le
+       propriétaire, d'où le passage par le SQL d'administration. */
+    const { error: eSeances } = await supabaseAdmin.rpc('generer_seances_admin', {
+      p_activite_id: data.id,
+      p_semaines: 6,
+    })
+    if (eSeances) throw eSeances
+  }
+
+  // Quelques inscriptions, pour que les écrans ne soient pas vides.
+  const { data: seances } = await supabaseAdmin
+    .from('seance')
+    .select('id, activite_id, date')
+    .order('date')
+    .limit(60)
+
+  const parActivite = new Map<string, { id: string }[]>()
+  for (const s of seances ?? []) {
+    const liste = parActivite.get(s.activite_id) ?? []
+    liste.push(s)
+    parActivite.set(s.activite_id, liste)
+  }
+
+  // Le membre de démonstration s'inscrit à la première séance d'un créneau
+  // sur trois : de quoi remplir « Vos inscriptions » sans tout saturer.
+  let i = 0
+  for (const [, liste] of parActivite) {
+    if (i++ % 3 === 0 && liste[0]) {
+      await supabaseAdmin.from('reservation').insert({ seance_id: liste[0].id, membre_id: membreId })
+    }
+  }
+
+  console.log(`  ${ACTIVITES.length} activités et leurs séances créées`)
+}
+
+/* Appel en fin de fichier : les constantes ci-dessus doivent être évaluées
+   avant, sinon `ACTIVITES` est encore dans sa zone morte temporelle. */
 await peupler()
 process.exit(0)

@@ -1,64 +1,99 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
-import { RESERVATIONS } from '../data/mock.ts'
-import { totalCentimes } from '../data/monnaie.ts'
-import type { Professionnel, Reservation, StatutFacture, StatutReservation } from '../data/types.ts'
-import { useCatalogue } from './catalogue.ts'
-import { appliquerStatutFacture, aujourdhuiIso } from './facturation.ts'
-import { ContextePro } from './pro.ts'
 import { useIdentite } from '../auth/session.ts'
+import { totalCentimes } from '../data/monnaie.ts'
+import {
+  changerStatutReservation,
+  chargerReservations,
+  emettreFacture,
+  enregistrerProfilPro,
+  marquerFacturePayee,
+} from '../data/requetes.ts'
+import type { Professionnel, Reservation, StatutReservation } from '../data/types.ts'
+import { useCatalogue } from './catalogue.ts'
+import { ContextePro } from './pro.ts'
 
 export default function ProProvider({ children }: { children: ReactNode }) {
   // Une réservation ne connaît que sa séance : il faut le catalogue pour
   // remonter au créneau et pour trier par date.
-  const { seances } = useCatalogue()
-  /* Le profil vient de la session, pas d'une constante : on est ici derrière
-     une garde de rôle « professionnel », l'identité est donc garantie. */
+  const { seances, recharger } = useCatalogue()
   const identite = useIdentite()
   if (identite.role !== 'professionnel') {
     throw new Error("<ProProvider> monté hors de l'espace professionnel.")
   }
+
   const [profil, setProfil] = useState<Professionnel>(identite.profil)
-  const [reservations, setReservations] = useState<readonly Reservation[]>(RESERVATIONS)
+  const [reservations, setReservations] = useState<readonly Reservation[]>([])
+  const [chargement, setChargement] = useState(true)
 
-  const changerStatut = useCallback((id: string, statut: StatutReservation) => {
-    setReservations((precedent) => precedent.map((r) => (r.id === id ? { ...r, statut } : r)))
+  const relire = useCallback(async () => {
+    setReservations(await chargerReservations())
+    setChargement(false)
   }, [])
 
-  const changerStatutFacture = useCallback((id: string, statut: StatutFacture) => {
-    const aujourdhui = aujourdhuiIso()
-    setReservations((precedent) =>
-      precedent.map((r) =>
-        r.id === id ? { ...r, facture: appliquerStatutFacture(r.facture, statut, aujourdhui) } : r,
-      ),
-    )
+  useEffect(() => {
+    // oxlint-disable-next-line react/set-state-in-effect
+    void relire()
+  }, [relire])
+
+  const enregistrer = useCallback(async (suivant: Professionnel) => {
+    await enregistrerProfilPro(suivant)
+    setProfil(suivant)
   }, [])
 
-  const valeur = useMemo(
-    () => ({
+  const changerStatut = useCallback(
+    async (id: string, statut: StatutReservation) => {
+      await changerStatutReservation(id, statut)
+      // Le compteur de places de la séance bouge avec le statut.
+      await Promise.all([relire(), recharger()])
+    },
+    [relire, recharger],
+  )
+
+  const emettre = useCallback(
+    async (reservationId: string) => {
+      await emettreFacture(reservationId)
+      await relire()
+    },
+    [relire],
+  )
+
+  const marquerPayee = useCallback(
+    async (reservationId: string) => {
+      await marquerFacturePayee(reservationId)
+      await relire()
+    },
+    [relire],
+  )
+
+  const valeur = useMemo(() => {
+    const dateDe = new Map(seances.map((s) => [s.id, s.date]))
+    return {
       profil,
-      enregistrerProfil: setProfil,
+      enregistrerProfil: enregistrer,
       reservations,
+      chargement,
       pourActivites: (activiteIds: readonly string[]) => {
-        const concernees = new Map(
-          seances.filter((s) => activiteIds.includes(s.activiteId)).map((s) => [s.id, s.date]),
+        const concernees = new Set(
+          seances.filter((s) => activiteIds.includes(s.activiteId)).map((s) => s.id),
         )
         return reservations
           .filter((r) => concernees.has(r.seanceId))
-          .sort((a, b) => (concernees.get(a.seanceId) ?? '').localeCompare(concernees.get(b.seanceId) ?? ''))
+          .sort((a, b) => (dateDe.get(a.seanceId) ?? '').localeCompare(dateDe.get(b.seanceId) ?? ''))
       },
-      parId: (id: string | undefined) =>
-        id ? reservations.find((r) => r.id === id) : undefined,
+      parId: (id: string | undefined) => reservations.find((r) => r.id === id),
       changerStatut,
-      changerStatutFacture,
+      emettre,
+      marquerPayee,
       // Somme d'entiers : exacte, contrairement à une addition d'euros
       // en flottant qui dérive au fil des factures.
       resteAEncaisser: totalCentimes(
-        reservations.filter((r) => r.facture.statut === 'emise').map((r) => r.facture.montantCentimes),
+        reservations
+          .filter((r) => r.facture?.statut === 'emise')
+          .map((r) => r.facture?.montantCentimes ?? 0),
       ),
-    }),
-    [seances, profil, reservations, changerStatut, changerStatutFacture],
-  )
+    }
+  }, [seances, profil, reservations, chargement, enregistrer, changerStatut, emettre, marquerPayee])
 
   return <ContextePro value={valeur}>{children}</ContextePro>
 }

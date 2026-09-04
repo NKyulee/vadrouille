@@ -104,21 +104,37 @@ export const LABELS = {
     titreMembre: 'Se connecter',
     titrePro: 'Espace professionnel',
 
+    /* Deux jeux de textes, un par canal : libellé, aide et message d'erreur
+       doivent parler de ce que la personne a réellement sous les yeux.
+       Voir auth/canal.ts. */
     membre: {
-      intro: 'Entrez votre numéro de téléphone. Vous recevrez un code par SMS.',
-      telephone: 'Numéro de téléphone',
-      telephoneAide: 'Le numéro que vous avez donné à l’accueil.',
-      telephoneInvalide: 'Indiquer un numéro à 10 chiffres, par exemple 06 12 34 56 78.',
+      sms: {
+        intro: 'Entrez votre numéro de téléphone. Vous recevrez un code par SMS.',
+        identifiant: 'Numéro de téléphone',
+        identifiantAide: 'Le numéro que vous avez donné à l’accueil.',
+        identifiantInvalide: 'Indiquer un numéro à 10 chiffres, par exemple 06 12 34 56 78.',
+        codeEnvoye: (ou: string) => `Un code à 6 chiffres a été envoyé au ${ou}.`,
+        code: 'Code reçu par SMS',
+        changer: 'Modifier le numéro',
+        echecEnvoi: "Le code n'a pas pu être envoyé. Vérifiez le numéro.",
+      },
+      email: {
+        intro: 'Entrez votre adresse électronique. Vous recevrez un code par courriel.',
+        identifiant: 'Adresse électronique',
+        identifiantAide: 'L’adresse que vous avez donnée à l’accueil.',
+        identifiantInvalide: 'Indiquer une adresse du type nom@domaine.fr.',
+        codeEnvoye: (ou: string) => `Un code à 6 chiffres a été envoyé à ${ou}.`,
+        code: 'Code reçu par courriel',
+        changer: 'Modifier l’adresse',
+        echecEnvoi: "Le code n'a pas pu être envoyé. Vérifiez l'adresse.",
+      },
       demanderCode: 'Recevoir mon code',
-      codeEnvoye: (numero: string) => `Un code à 6 chiffres a été envoyé au ${numero}.`,
-      code: 'Code reçu par SMS',
       codeAide: 'Six chiffres. Le code est valable quelques minutes.',
       codeInvalide: 'Indiquer les 6 chiffres reçus.',
       valider: 'Me connecter',
-      changerNumero: 'Modifier le numéro',
       renvoyer: 'Renvoyer un code',
-      echecEnvoi: "Le code n'a pas pu être envoyé. Vérifiez le numéro.",
       echecCode: 'Ce code ne correspond pas, ou il a expiré.',
+      inconnu: "Ce compte n'existe pas. Passez à l'accueil, on vous inscrit.",
       pasDeCompte: "Pas encore inscrit ? Passez à l'accueil, on s'occupe de tout.",
     },
 

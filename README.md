@@ -330,23 +330,60 @@ Supabase (GoTrue) porte l'identité ; l'API et le RLS portent les droits.
 ### Mise en route
 
 1. Créer un projet sur [supabase.com](https://supabase.com).
-2. Copier `.env.example` en `.env` à la racine et renseigner les quatre clés
+2. Copier `.env.example` en `.env` à la racine et renseigner les clés
    (onglets *API* et *Database* du tableau de bord).
 3. `pnpm --filter api db:migrate` puis `pnpm --filter api db:seed`.
-4. Dans *Authentication › Providers*, activer **Phone** et brancher un
-   fournisseur SMS. Sans lui, la connexion des membres ne peut pas aboutir.
 
 `SUPABASE_SERVICE_ROLE_KEY` **contourne le RLS** : côté serveur uniquement,
 jamais dans un dépôt. Seules `VITE_SUPABASE_URL` et `VITE_SUPABASE_ANON_KEY`
 ont le droit d'arriver dans le bundle.
 
+#### La chaîne de connexion
+
+Prendre celle du **pooler**, pas la connexion directe :
+
+```
+postgresql://postgres.<ref>:<mot-de-passe>@aws-<n>-<region>.pooler.supabase.com:6543/postgres
+```
+
+`db.<ref>.supabase.co` — l'accès direct — n'a plus d'enregistrement DNS sans
+l'option IPv4, et les adresses IPv6 d'un réseau domestique sont souvent
+locales, donc non routables. Le pooler résout en IPv4 et accepte le DDL des
+migrations, y compris en mode transaction (port 6543).
+
+Le mot de passe est celui de la **base**, pas une clé d'API. Il se réinitialise
+dans *Settings › Database*. Encoder les caractères spéciaux (`@`, `:`, `/`,
+`#`, `%`), sinon l'URL est mal découpée et l'échec est silencieux.
+
 ### Deux publics, deux parcours
 
 | | Membres | Professionnels |
 |---|---|---|
-| Connexion | code à 6 chiffres par SMS | e-mail + mot de passe |
+| Connexion | code à 6 chiffres | e-mail + mot de passe |
 | Écran | `/connexion` | `/connexion-pro` |
 | Pourquoi | le public est âgé : le mot de passe est le premier obstacle à l'usage, pas la première protection | utilisateurs pro manipulant factures et SIRET : le standard s'applique |
+
+#### Le canal des membres
+
+La cible est le **SMS** — le téléphone est l'appareil familier du public visé.
+En attendant un fournisseur tiers (Twilio, MessageBird…), le même parcours en
+deux étapes fonctionne par **courriel**.
+
+```
+VITE_CANAL_MEMBRE=email    # défaut
+VITE_CANAL_MEMBRE=sms      # une fois le fournisseur branché
+```
+
+Libellés, type de clavier, `autoComplete` et validation s'adaptent seuls
+(`auth/canal.ts`). Les comptes de démonstration portent **les deux
+identifiants** dès leur création : basculer ne demandera aucune reprise de
+données.
+
+Pour recevoir un code à six chiffres plutôt qu'un lien à cliquer, le modèle
+*Authentication › Email Templates › Magic Link* doit contenir `{{ .Token }}`.
+
+`shouldCreateUser: false` sur la demande de code : personne ne s'inscrit seul,
+les comptes sont créés à l'accueil avec la clé de service.
 
 Les champs de connexion des membres sont volontairement plus grands
 qu'ailleurs, et l'`autoComplete="one-time-code"` fait proposer le code du SMS

@@ -16,6 +16,10 @@ const MEMBRE = {
   prenom: 'Colette',
   nom: 'Marchand',
   initiales: 'CM',
+  /* Les deux identifiants sont posés dès la création : l'e-mail sert
+     aujourd'hui, le téléphone servira dès qu'un fournisseur SMS sera
+     branché. Basculer ne demandera alors aucune reprise de données. */
+  email: process.env.SEED_MEMBRE_EMAIL ?? 'colette.marchand@exemple.fr',
   telephone: '+33612345678',
   membreDepuis: 'mars 2024',
 }
@@ -45,9 +49,11 @@ async function trouverParEmail(email: string) {
   return data?.users.find((u) => u.email === email)
 }
 
-async function trouverParTelephone(telephone: string) {
+async function trouverMembre() {
   const { data } = await supabaseAdmin.auth.admin.listUsers({ perPage: 1000 })
-  return data?.users.find((u) => u.phone === telephone.replace('+', ''))
+  return data?.users.find(
+    (u) => u.email === MEMBRE.email || u.phone === MEMBRE.telephone.replace('+', ''),
+  )
 }
 
 async function peupler() {
@@ -82,16 +88,29 @@ async function peupler() {
      Le compte est créé avec son numéro déjà confirmé. C'est ce que ferait
      l'inscription assistée à l'accueil : quelqu'un enregistre la personne,
      qui n'aura ensuite qu'à recevoir son code. */
-  let membre = await trouverParTelephone(MEMBRE.telephone)
+  let membre = await trouverMembre()
   if (!membre) {
-    const { data, error } = await supabaseAdmin.auth.admin.createUser({
-      phone: MEMBRE.telephone,
-      phone_confirm: true,
+    const commun = {
+      email: MEMBRE.email,
+      email_confirm: true,
       app_metadata: { role: 'membre' },
       user_metadata: { name: `${MEMBRE.prenom} ${MEMBRE.nom}` },
+    }
+
+    /* Le téléphone n'est accepté que si le fournisseur SMS est activé côté
+       Supabase. S'il ne l'est pas, on crée le compte sans, plutôt que
+       d'échouer : l'e-mail suffit pour se connecter aujourd'hui. */
+    let creation = await supabaseAdmin.auth.admin.createUser({
+      ...commun,
+      phone: MEMBRE.telephone,
+      phone_confirm: true,
     })
-    if (error) throw error
-    membre = data.user
+    if (creation.error) {
+      console.warn(`  (téléphone ignoré : ${creation.error.message})`)
+      creation = await supabaseAdmin.auth.admin.createUser(commun)
+    }
+    if (creation.error) throw creation.error
+    membre = creation.data.user
   }
 
   await supabaseAdmin.from('membre').upsert({
@@ -104,7 +123,8 @@ async function peupler() {
   })
 
   console.log('Comptes de démonstration prêts :')
-  console.log(`  membre        ${MEMBRE.telephone}  (code SMS)`)
+  console.log(`  membre        ${membre.email ?? MEMBRE.email}  (code par courriel)`)
+  if (membre.phone) console.log(`                +${membre.phone}  (code SMS, si activé)`)
   console.log(`  professionnel ${PRO.email}`)
   if (creeMaintenant) {
     console.log(`  mot de passe  ${PRO.motDePasse}`)

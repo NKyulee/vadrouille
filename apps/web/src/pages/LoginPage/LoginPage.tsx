@@ -1,19 +1,12 @@
 import { useState } from 'react'
 import { Button, FieldError, Form, Input, Label, Link, Text, TextField } from 'react-aria-components'
 import { useLocation, useNavigate } from 'react-router'
+import { CANAL_MEMBRE, normaliserIdentifiant } from '../../auth/canal.ts'
 import { supabase } from '../../auth/supabase.ts'
 import { useSession } from '../../auth/session.ts'
 import { useTitrePage } from '../../hooks/useTitrePage.ts'
 import { LABELS } from '../../labels.ts'
 import './LoginPage.scss'
-
-/** « 06 12 34 56 78 » → « +33612345678 ». Supabase veut du format E.164. */
-function versE164(saisie: string): string | null {
-  const chiffres = saisie.replace(/\D/g, '')
-  if (/^0\d{9}$/.test(chiffres)) return `+33${chiffres.slice(1)}`
-  if (/^33\d{9}$/.test(chiffres)) return `+${chiffres}`
-  return null
-}
 
 export default function LoginPage() {
   useTitrePage(LABELS.auth.titreMembre)
@@ -22,36 +15,58 @@ export default function LoginPage() {
   const { state } = useLocation()
   const { rafraichir } = useSession()
 
-  const [etape, setEtape] = useState<'numero' | 'code'>('numero')
-  const [saisieNumero, setSaisieNumero] = useState('')
-  const [numero, setNumero] = useState('')
+  /** Textes du canal en service — SMS ou courriel. */
+  const T = LABELS.auth.membre[CANAL_MEMBRE]
+
+  const [etape, setEtape] = useState<'identifiant' | 'code'>('identifiant')
+  const [saisie, setSaisie] = useState('')
+  const [identifiant, setIdentifiant] = useState('')
   const [code, setCode] = useState('')
   const [erreur, setErreur] = useState<string | null>(null)
   const [envoi, setEnvoi] = useState(false)
 
-  const demanderCode = async () => {
-    const e164 = versE164(saisieNumero)
-    if (!e164) {
-      setErreur(LABELS.auth.membre.telephoneInvalide)
+  const demanderCode = async (valeur = saisie) => {
+    const normalise = normaliserIdentifiant(valeur)
+    if (!normalise) {
+      setErreur(T.identifiantInvalide)
       return
     }
+
     setEnvoi(true)
     setErreur(null)
-    const { error } = await supabase.auth.signInWithOtp({ phone: e164 })
+    /* `shouldCreateUser: false` : personne ne s'inscrit tout seul. Les
+       comptes sont créés à l'accueil, avec la clé de service. Sans ça,
+       n'importe quelle adresse saisie créerait un compte vide. */
+    const { error } =
+      CANAL_MEMBRE === 'sms'
+        ? await supabase.auth.signInWithOtp({ phone: normalise, options: { shouldCreateUser: false } })
+        : await supabase.auth.signInWithOtp({ email: normalise, options: { shouldCreateUser: false } })
     setEnvoi(false)
+
     if (error) {
-      setErreur(LABELS.auth.membre.echecEnvoi)
+      /* Supabase distingue « compte inconnu » du reste. On le dit, parce
+         qu'ici ce n'est pas une fuite : l'inscription se fait en présentiel,
+         il n'y a rien à énumérer, et laisser quelqu'un réessayer un code qui
+         n'arrivera jamais serait cruel. */
+      setErreur(error.status === 422 || /not found|signups not allowed/i.test(error.message)
+        ? LABELS.auth.membre.inconnu
+        : T.echecEnvoi)
       return
     }
-    setNumero(e164)
+
+    setIdentifiant(normalise)
     setEtape('code')
   }
 
   const validerCode = async () => {
     setEnvoi(true)
     setErreur(null)
-    const { error } = await supabase.auth.verifyOtp({ phone: numero, token: code, type: 'sms' })
+    const { error } =
+      CANAL_MEMBRE === 'sms'
+        ? await supabase.auth.verifyOtp({ phone: identifiant, token: code, type: 'sms' })
+        : await supabase.auth.verifyOtp({ email: identifiant, token: code, type: 'email' })
     setEnvoi(false)
+
     if (error) {
       setErreur(LABELS.auth.membre.echecCode)
       return
@@ -65,14 +80,14 @@ export default function LoginPage() {
     <div className="conteneur conteneur--aere pile pile--lg connexion">
       <h1>{LABELS.auth.titreMembre}</h1>
 
-      {/* Le message d'erreur est dans une région live : sans ça, un lecteur
-          d'écran ne signalerait pas l'échec, l'utilisateur resterait devant
-          un formulaire qui « ne fait rien ». */}
+      {/* role="alert" : sans région live, un lecteur d'écran ne signalerait
+          pas l'échec et l'utilisateur resterait devant un formulaire qui
+          « ne fait rien ». */}
       <p role="alert" className={erreur ? 'message-erreur' : 'hors-ecran'}>
         {erreur ?? ''}
       </p>
 
-      {etape === 'numero' ? (
+      {etape === 'identifiant' ? (
         <Form
           className="formulaire"
           validationBehavior="native"
@@ -81,26 +96,28 @@ export default function LoginPage() {
             void demanderCode()
           }}
         >
-          <p className="texte-doux">{LABELS.auth.membre.intro}</p>
+          <p className="texte-doux">{T.intro}</p>
 
           <TextField
             className="champ"
             isRequired
-            type="tel"
-            value={saisieNumero}
-            onChange={setSaisieNumero}
+            type={CANAL_MEMBRE === 'sms' ? 'tel' : 'email'}
+            value={saisie}
+            onChange={setSaisie}
             autoFocus
           >
-            <Label className="champ__label">{LABELS.auth.membre.telephone}</Label>
+            <Label className="champ__label">{T.identifiant}</Label>
             <Text slot="description" className="champ__aide">
-              {LABELS.auth.membre.telephoneAide}
+              {T.identifiantAide}
             </Text>
-            {/* inputMode numérique : sur téléphone, le clavier à chiffres
-                s'ouvre directement. autoComplete pour la saisie assistée. */}
-            <Input className="champ__saisie connexion__saisie" inputMode="tel" autoComplete="tel" />
-            <FieldError className="champ__erreur">
-              {LABELS.auth.membre.telephoneInvalide}
-            </FieldError>
+            {/* Le bon clavier s'ouvre directement sur téléphone, et
+                autoComplete permet la saisie assistée. */}
+            <Input
+              className="champ__saisie connexion__saisie"
+              inputMode={CANAL_MEMBRE === 'sms' ? 'tel' : 'email'}
+              autoComplete={CANAL_MEMBRE === 'sms' ? 'tel' : 'email'}
+            />
+            <FieldError className="champ__erreur">{T.identifiantInvalide}</FieldError>
           </TextField>
 
           <Button type="submit" className="bouton connexion__valider" isDisabled={envoi}>
@@ -116,21 +133,15 @@ export default function LoginPage() {
             void validerCode()
           }}
         >
-          <p role="status">{LABELS.auth.membre.codeEnvoye(saisieNumero)}</p>
+          <p role="status">{T.codeEnvoye(saisie)}</p>
 
-          <TextField
-            className="champ"
-            isRequired
-            value={code}
-            onChange={setCode}
-            autoFocus
-          >
-            <Label className="champ__label">{LABELS.auth.membre.code}</Label>
+          <TextField className="champ" isRequired value={code} onChange={setCode} autoFocus>
+            <Label className="champ__label">{T.code}</Label>
             <Text slot="description" className="champ__aide">
               {LABELS.auth.membre.codeAide}
             </Text>
-            {/* one-time-code : iOS et Android proposent le code du SMS
-                au-dessus du clavier, sans le retaper. */}
+            {/* one-time-code : iOS et Android proposent le code reçu
+                au-dessus du clavier, sans avoir à le retaper. */}
             <Input
               className="champ__saisie connexion__saisie connexion__code"
               inputMode="numeric"
@@ -145,18 +156,22 @@ export default function LoginPage() {
             <Button type="submit" className="bouton connexion__valider" isDisabled={envoi}>
               {LABELS.auth.membre.valider}
             </Button>
-            <Button className="bouton bouton--discret" onPress={() => void demanderCode()}>
+            <Button
+              className="bouton bouton--discret"
+              isDisabled={envoi}
+              onPress={() => void demanderCode(identifiant)}
+            >
               {LABELS.auth.membre.renvoyer}
             </Button>
             <Button
               className="bouton bouton--discret"
               onPress={() => {
-                setEtape('numero')
+                setEtape('identifiant')
                 setCode('')
                 setErreur(null)
               }}
             >
-              {LABELS.auth.membre.changerNumero}
+              {T.changer}
             </Button>
           </div>
         </Form>

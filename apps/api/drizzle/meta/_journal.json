@@ -71,6 +71,20 @@
       "when": 1788532111244,
       "tag": "0009_profil_suit_le_role",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1788532111245,
+      "tag": "0010_droits_stricts",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1788532111246,
+      "tag": "0011_droits_par_colonne",
+      "breakpoints": true
     }
   ]
 }

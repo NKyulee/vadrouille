@@ -1,0 +1,29 @@
+@use '../../styles/mixins' as *;
+
+/* Choix de couleur : la pastille est accompagnée de son nom écrit. Une
+   pastille seule ne dirait rien à qui ne distingue pas les teintes. */
+.pastille-choix {
+  @include cible-tactile;
+
+  display: inline-flex;
+  gap: var(--espace-xs);
+  align-items: center;
+  padding: var(--espace-2xs) var(--espace-sm) var(--espace-2xs) var(--espace-2xs);
+  font-weight: 600;
+  color: var(--couleur-texte-doux);
+  cursor: pointer;
+  background-color: var(--couleur-fond);
+  border: 1px solid var(--couleur-bordure);
+  border-radius: var(--rayon-rond);
+
+  &[data-hovered] {
+    background-color: var(--couleur-fond-survol);
+  }
+
+  &[data-selected] {
+    font-weight: 700;
+    color: var(--couleur-texte);
+    background-color: var(--couleur-primaire-fond);
+    border-color: var(--couleur-primaire);
+  }
+}

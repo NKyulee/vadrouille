@@ -219,6 +219,19 @@ devinent pas.
 
 ## Profil et préférences
 
+Chacun modifie ses propres informations : prénom, nom, couleur d'avatar, mot
+de passe. Ce n'est pas du confort — le profil créé automatiquement dérive son
+prénom de l'adresse électronique, ce qui donne « Yunguyen94 ». Sans cet écran,
+il faudrait passer par l'accueil pour corriger son propre nom.
+
+Le changement de mot de passe ne déclenche aucun courriel. La couleur
+d'avatar est accompagnée de son nom écrit : une pastille seule ne dit rien à
+qui ne distingue pas les teintes.
+
+Après enregistrement, la session est rechargée — le nom s'affiche dans
+l'entête et sur les avatars, il doit suivre immédiatement.
+
+
 `ProfilePage` réunit l'identité du membre, ses inscriptions (les mêmes cartes
 que sur Activités, désinscription comprise) et les préférences d'affichage.
 
@@ -427,6 +440,34 @@ inscriptions au passage.
 Côté front, « connecté mais sans profil » est distinct de « pas connecté ».
 Confondre les deux renverrait vers l'écran de connexion, qui réussirait, qui
 renverrait encore — une boucle sans issue.
+
+### Le RLS filtre des lignes, les GRANT filtrent des colonnes
+
+Deux mécanismes distincts, et confondre les deux ouvre des trous. Deux
+exemples trouvés en vérifiant, tous deux exploitables :
+
+**Une vue simple est modifiable.** `professionnel_public` n'a ni jointure ni
+agrégat : Postgres la rend automatiquement modifiable. Avec
+`security_invoker = false`, une écriture s'y exécutait en tant que
+propriétaire, donc **sans RLS** — n'importe quel membre connecté pouvait
+réécrire la fiche de n'importe quel intervenant. Les vues sont désormais en
+`GRANT SELECT` seul.
+
+**`TRUNCATE` ignore le RLS.** Supabase accorde par défaut *tous* les droits à
+`anon` et `authenticated`, en comptant sur les politiques. Or aucune politique
+n'arrête un `TRUNCATE`. Tout est révoqué puis réaccordé au strict nécessaire,
+`ALTER DEFAULT PRIVILEGES` compris pour les objets à venir.
+
+**Le RLS ne dit rien des colonnes.** Un membre pouvait réécrire
+`membre_depuis`, sa date d'arrivée — une donnée du lieu, pas la sienne.
+Ajouter une condition à la politique n'y aurait rien changé : c'est un
+`GRANT UPDATE (colonnes)` qu'il faut.
+
+| Table | Colonnes modifiables par l'intéressé |
+|---|---|
+| `membre` | prénom, nom, initiales, couleur d'avatar |
+| `professionnel` | idem + structure, téléphone, SIRET, présentation |
+| `facture` | statut et dates seulement — le reste est verrouillé par déclencheur |
 
 ### Le rôle est dans `app_metadata`
 

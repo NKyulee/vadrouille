@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Button, Label, Link, Radio, RadioGroup, Switch, Text } from 'react-aria-components'
 import ActivityCard from '../../components/ActivityCard/ActivityCard.tsx'
 import Avatar from '../../components/Avatar/Avatar.tsx'
+import MemberProfileForm from '../../components/MemberProfileForm/MemberProfileForm.tsx'
 
 import { useMembre, useSession } from '../../auth/session.ts'
 import { useTitrePage } from '../../hooks/useTitrePage.ts'
@@ -18,7 +19,7 @@ export default function ProfilePage() {
   useTitrePage(LABELS.profil.titre)
 
   const membre = useMembre()
-  const { seDeconnecter } = useSession()
+  const { seDeconnecter, rafraichir } = useSession()
   const { mesSeances, nombre, estInscrit, basculer } = useInscriptions()
   const { activiteParId } = useCatalogue()
 
@@ -84,6 +85,16 @@ export default function ProfilePage() {
             {LABELS.profil.voirProgramme}
           </Link>
         </p>
+      </section>
+
+      <section className="pile pile--sm" aria-labelledby="titre-informations">
+        <h2 id="titre-informations" className="titre-section">
+          {LABELS.profil.mesInformations}
+        </h2>
+        {/* Le nom du compte vient de l'adresse électronique quand personne ne
+            l'a renseigné : « Yunguyen94 » plutôt que « Yun ». D'où cet écran,
+            qui laisse chacun se corriger sans passer par l'accueil. */}
+        <MemberProfileForm membre={membre} onEnregistre={rafraichir} />
       </section>
 
       <section className="pile pile--sm" aria-labelledby="titre-compte">

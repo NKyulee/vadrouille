@@ -301,6 +301,30 @@ export async function marquerFacturePayee(reservationId: string): Promise<void> 
   if (error) throw new Error(error.message)
 }
 
+/* --- Profil du membre -------------------------------------------------------
+   Le RLS restreint l'écriture à sa propre ligne : `eq('user_id', …)` est là
+   pour viser la bonne ligne, pas pour protéger. Même sans ce filtre, la base
+   n'en laisserait modifier aucune autre. */
+
+export async function enregistrerProfilMembre(profil: Membre): Promise<void> {
+  const { error } = await supabase
+    .from('membre')
+    .update({
+      prenom: profil.prenom,
+      nom: profil.nom,
+      initiales: profil.initiales,
+      couleur_avatar: profil.couleur,
+    })
+    .eq('user_id', profil.id)
+  if (error) throw new Error(error.message)
+}
+
+/** Change le mot de passe du compte connecté. Aucun courriel envoyé. */
+export async function changerMotDePasse(nouveau: string): Promise<void> {
+  const { error } = await supabase.auth.updateUser({ password: nouveau })
+  if (error) throw new Error(error.message)
+}
+
 export async function enregistrerProfilPro(profil: Professionnel): Promise<void> {
   const { error } = await supabase
     .from('professionnel')

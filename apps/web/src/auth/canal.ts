@@ -1,21 +1,32 @@
 /* Canal de connexion des membres.
 
-   La cible est le SMS : le public est âgé, le téléphone est l'appareil
-   familier, et un code reçu par SMS évite tout mot de passe. Mais l'envoi de
-   SMS demande un fournisseur tiers (Twilio, MessageBird…) qui n'est pas
-   encore branché.
+   Trois valeurs, une seule variable d'environnement — aucun code à changer
+   pour passer de l'une à l'autre.
 
-   En attendant, le même parcours en deux étapes fonctionne par e-mail :
-   identifiant, puis code à six chiffres. Écrans, validation et comportement
-   sont identiques — seul le canal change.
+   `motdepasse` (défaut) : adresse et mot de passe, en un écran. Ne déclenche
+     aucun envoi de courriel, donc aucune limite de débit. C'est ce qui marche
+     aujourd'hui.
 
-   Basculer se fait par `VITE_CANAL_MEMBRE=sms` dans .env, sans toucher au
-   code, une fois le fournisseur SMS configuré côté Supabase. */
+   `email` : code à six chiffres reçu par courriel. Suppose un SMTP applicatif
+     configuré côté Supabase — le service intégré est bridé à quelques envois
+     par heure et renvoie `over_email_send_rate_limit`.
 
-export type CanalMembre = 'email' | 'sms'
+   `sms` : la cible. Le téléphone est l'appareil familier du public visé, et
+     un code reçu par SMS évite tout mot de passe à retenir. Suppose un
+     fournisseur SMS branché. */
 
-export const CANAL_MEMBRE: CanalMembre =
-  import.meta.env.VITE_CANAL_MEMBRE === 'sms' ? 'sms' : 'email'
+export type CanalMembre = 'motdepasse' | 'email' | 'sms'
+
+const CANAUX: CanalMembre[] = ['motdepasse', 'email', 'sms']
+
+export const CANAL_MEMBRE: CanalMembre = CANAUX.includes(
+  import.meta.env.VITE_CANAL_MEMBRE as CanalMembre,
+)
+  ? (import.meta.env.VITE_CANAL_MEMBRE as CanalMembre)
+  : 'motdepasse'
+
+/** Vrai si le canal se fait en deux temps : identifiant, puis code reçu. */
+export const EN_DEUX_ETAPES = CANAL_MEMBRE !== 'motdepasse'
 
 /** « 06 12 34 56 78 » → « +33612345678 ». Supabase attend du format E.164. */
 export function versE164(saisie: string): string | null {

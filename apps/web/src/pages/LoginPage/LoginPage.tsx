@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Button, FieldError, Form, Input, Label, Link, Text, TextField } from 'react-aria-components'
 import { useLocation, useNavigate } from 'react-router'
-import { CANAL_MEMBRE, normaliserIdentifiant } from '../../auth/canal.ts'
+import { CANAL_MEMBRE, EN_DEUX_ETAPES, normaliserIdentifiant } from '../../auth/canal.ts'
 import { supabase } from '../../auth/supabase.ts'
 import { useSession } from '../../auth/session.ts'
 import { useTitrePage } from '../../hooks/useTitrePage.ts'
@@ -22,8 +22,37 @@ export default function LoginPage() {
   const [saisie, setSaisie] = useState('')
   const [identifiant, setIdentifiant] = useState('')
   const [code, setCode] = useState('')
+  const [motDePasse, setMotDePasse] = useState('')
   const [erreur, setErreur] = useState<string | null>(null)
   const [envoi, setEnvoi] = useState(false)
+
+  const allerAuRetour = () => {
+    const retour =
+      typeof state === 'object' && state && 'retour' in state ? String(state.retour) : '/'
+    naviguer(retour, { replace: true })
+  }
+
+  /* Connexion directe, sans code : aucun courriel n'est envoyé, donc aucune
+     limite de débit. C'est ce qui distingue ce canal des deux autres. */
+  const seConnecterMotDePasse = async () => {
+    const email = normaliserIdentifiant(saisie)
+    if (!email) {
+      setErreur(T.identifiantInvalide)
+      return
+    }
+    setEnvoi(true)
+    setErreur(null)
+    const { error } = await supabase.auth.signInWithPassword({ email, password: motDePasse })
+    setEnvoi(false)
+    if (error) {
+      // Message unique : distinguer « adresse inconnue » de « mot de passe
+      // faux » permettrait d'énumérer les comptes.
+      setErreur(LABELS.auth.membre.echecMotDePasse)
+      return
+    }
+    await rafraichir()
+    allerAuRetour()
+  }
 
   const demanderCode = async (valeur = saisie) => {
     const normalise = normaliserIdentifiant(valeur)
@@ -72,8 +101,7 @@ export default function LoginPage() {
       return
     }
     await rafraichir()
-    const retour = typeof state === 'object' && state && 'retour' in state ? String(state.retour) : '/'
-    naviguer(retour, { replace: true })
+    allerAuRetour()
   }
 
   return (
@@ -87,7 +115,58 @@ export default function LoginPage() {
         {erreur ?? ''}
       </p>
 
-      {etape === 'identifiant' ? (
+      {!EN_DEUX_ETAPES ? (
+        <Form
+          className="formulaire"
+          validationBehavior="native"
+          onSubmit={(e) => {
+            e.preventDefault()
+            void seConnecterMotDePasse()
+          }}
+        >
+          <p className="texte-doux">{T.intro}</p>
+
+          <TextField
+            className="champ"
+            isRequired
+            type="email"
+            value={saisie}
+            onChange={setSaisie}
+            autoFocus
+          >
+            <Label className="champ__label">{T.identifiant}</Label>
+            <Text slot="description" className="champ__aide">
+              {T.identifiantAide}
+            </Text>
+            <Input
+              className="champ__saisie connexion__saisie"
+              inputMode="email"
+              autoComplete="username"
+            />
+            <FieldError className="champ__erreur">{T.identifiantInvalide}</FieldError>
+          </TextField>
+
+          <TextField
+            className="champ"
+            isRequired
+            type="password"
+            value={motDePasse}
+            onChange={setMotDePasse}
+          >
+            <Label className="champ__label">{LABELS.auth.membre.motDePasse}</Label>
+            {/* current-password : les gestionnaires de mots de passe le
+                reconnaissent et proposent le remplissage. */}
+            <Input className="champ__saisie connexion__saisie" autoComplete="current-password" />
+            <FieldError className="champ__erreur">
+              {LABELS.auth.membre.motDePasseRequis}
+            </FieldError>
+          </TextField>
+
+          <Button type="submit" className="bouton connexion__valider" isDisabled={envoi}>
+            {LABELS.auth.membre.seConnecter}
+          </Button>
+        </Form>
+      ) : etape === 'identifiant' ? (
         <Form
           className="formulaire"
           validationBehavior="native"

@@ -118,6 +118,16 @@ export const LABELS = {
         changer: 'Modifier le numéro',
         echecEnvoi: "Le code n'a pas pu être envoyé. Vérifiez le numéro.",
       },
+      motdepasse: {
+        intro: 'Entrez votre adresse et votre mot de passe.',
+        identifiant: 'Adresse électronique',
+        identifiantAide: 'L’adresse que vous avez donnée à l’accueil.',
+        identifiantInvalide: 'Indiquer une adresse du type nom@domaine.fr.',
+        codeEnvoye: () => '',
+        code: '',
+        changer: '',
+        echecEnvoi: '',
+      },
       email: {
         intro: 'Entrez votre adresse électronique. Vous recevrez un code par courriel.',
         identifiant: 'Adresse électronique',
@@ -135,6 +145,10 @@ export const LABELS = {
       renvoyer: 'Renvoyer un code',
       echecCode: 'Ce code ne correspond pas, ou il a expiré.',
       inconnu: "Ce compte n'existe pas. Passez à l'accueil, on vous inscrit.",
+      motDePasse: 'Mot de passe',
+      motDePasseRequis: 'Le mot de passe est obligatoire.',
+      seConnecter: 'Me connecter',
+      echecMotDePasse: 'Adresse ou mot de passe incorrect.',
       pasDeCompte: "Pas encore inscrit ? Passez à l'accueil, on s'occupe de tout.",
     },
 

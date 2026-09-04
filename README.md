@@ -371,14 +371,21 @@ dans *Settings › Database*. Encoder les caractères spéciaux (`@`, `:`, `/`,
 
 #### Le canal des membres
 
-La cible est le **SMS** — le téléphone est l'appareil familier du public visé.
-En attendant un fournisseur tiers (Twilio, MessageBird…), le même parcours en
-deux étapes fonctionne par **courriel**.
+Une variable, trois valeurs, aucun code à modifier :
 
-```
-VITE_CANAL_MEMBRE=email    # défaut
-VITE_CANAL_MEMBRE=sms      # une fois le fournisseur branché
-```
+| `VITE_CANAL_MEMBRE` | Parcours | Ce qu'il exige |
+|---|---|---|
+| `motdepasse` *(défaut)* | adresse + mot de passe, un écran | rien |
+| `email` | code à 6 chiffres par courriel | un SMTP applicatif |
+| `sms` | code à 6 chiffres par SMS | un fournisseur SMS |
+
+La **cible est le SMS** : le téléphone est l'appareil familier du public visé,
+et un code reçu évite tout mot de passe à retenir.
+
+Le mot de passe est ce qui fonctionne sans dépendre de personne. Le SMTP
+intégré de Supabase est bridé à quelques envois par heure et renvoie
+`over_email_send_rate_limit` — utilisable pour essayer, pas pour développer.
+`signInWithPassword`, lui, ne déclenche **aucun envoi**, donc aucune limite.
 
 Libellés, type de clavier, `autoComplete` et validation s'adaptent seuls
 (`auth/canal.ts`). Les comptes de démonstration portent **les deux

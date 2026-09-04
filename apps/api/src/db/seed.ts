@@ -31,6 +31,13 @@ const MEMBRE = {
 const MOT_DE_PASSE_PRO =
   process.env.SEED_PRO_PASSWORD ?? `demo-${crypto.randomUUID().slice(0, 12)}`
 
+/* Le membre aussi a un mot de passe. Ce n'est pas la cible — le public visé
+   se connectera par SMS — mais c'est le seul canal qui ne dépende d'aucun
+   service tiers, donc le seul utilisable tant que ni SMTP ni SMS ne sont
+   branchés. Voir apps/web/src/auth/canal.ts. */
+const MOT_DE_PASSE_MEMBRE =
+  process.env.SEED_MEMBRE_PASSWORD ?? `demo-${crypto.randomUUID().slice(0, 12)}`
+
 const PRO = {
   prenom: 'Nadia',
   nom: 'Brahimi',
@@ -89,9 +96,27 @@ async function peupler() {
      l'inscription assistée à l'accueil : quelqu'un enregistre la personne,
      qui n'aura ensuite qu'à recevoir son code. */
   let membre = await trouverMembre()
+  const membreCreeMaintenant = !membre
+
+  /* Compte déjà là, mais peut-être sans mot de passe : les premiers comptes
+     de démonstration ont été créés à l'époque du code par courriel. On le
+     (re)pose, faute de pouvoir savoir s'il en a un — l'API d'administration
+     ne l'expose pas, et c'est heureux. */
+  if (membre) {
+    const { error } = await supabaseAdmin.auth.admin.updateUserById(membre.id, {
+      password: MOT_DE_PASSE_MEMBRE,
+    })
+    if (error) throw error
+    console.log(`  mot de passe membre réinitialisé : ${MOT_DE_PASSE_MEMBRE}`)
+  }
+
   if (!membre) {
     const commun = {
       email: MEMBRE.email,
+      password: MOT_DE_PASSE_MEMBRE,
+      // `email_confirm` : le compte est créé à l'accueil, en présence de la
+      // personne. Aucun courriel de confirmation n'est donc envoyé — et
+      // aucun quota d'envoi consommé.
       email_confirm: true,
       app_metadata: { role: 'membre' },
       user_metadata: { name: `${MEMBRE.prenom} ${MEMBRE.nom}` },
@@ -125,7 +150,10 @@ async function peupler() {
   await peuplerDomaine(pro.id, membre.id)
 
   console.log('Comptes de démonstration prêts :')
-  console.log(`  membre        ${membre.email ?? MEMBRE.email}  (code par courriel)`)
+  console.log(`  membre        ${membre.email ?? MEMBRE.email}`)
+  if (membreCreeMaintenant) {
+    console.log(`  mot de passe  ${MOT_DE_PASSE_MEMBRE}`)
+  }
   if (membre.phone) console.log(`                +${membre.phone}  (code SMS, si activé)`)
   console.log(`  professionnel ${PRO.email}`)
   if (creeMaintenant) {

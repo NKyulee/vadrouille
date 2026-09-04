@@ -154,16 +154,40 @@
   border-radius: var(--rayon-md);
 }
 
-// Proposition d'adresse renvoyée par le géocodeur : on choisit, on ne devine pas.
+/* Propositions d'adresse renvoyées par le géocodeur. Partagées : le profil
+   du membre et le formulaire du professionnel affichent la même liste, et on
+   choisit toujours — on ne devine jamais. */
+
+.propositions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espace-2xs);
+  padding: var(--espace-2xs);
+  background-color: var(--couleur-fond);
+  border: 1px solid var(--couleur-bordure);
+  border-radius: var(--rayon-md);
+}
+
 .proposition {
+  @include cible-tactile;
+
+  display: flex;
   width: 100%;
-  justify-content: flex-start;
+  align-items: center;
+  padding: var(--espace-xs) var(--espace-sm);
   text-align: left;
-  font-weight: 400;
+  cursor: pointer;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: var(--rayon-sm);
+
+  &[data-hovered] {
+    background-color: var(--couleur-fond-survol);
+  }
 
   &--choisie {
     font-weight: 700;
-    color: var(--couleur-primaire);
+    color: var(--couleur-primaire-forte);
     background-color: var(--couleur-primaire-fond);
     border-color: var(--couleur-primaire);
   }

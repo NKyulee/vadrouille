@@ -1,29 +1,172 @@
 @use '../../styles/mixins' as *;
 
-/* Choix de couleur : la pastille est accompagnée de son nom écrit. Une
-   pastille seule ne dirait rien à qui ne distingue pas les teintes. */
-.pastille-choix {
+/* Le profil, en blocs distincts plutôt qu'en un seul long formulaire.
+
+   Chaque bloc a le même gabarit — entête, champs, pied — pour que l'œil
+   reconnaisse la structure sans la relire à chaque fois. */
+
+.profil-formulaire {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espace-lg);
+}
+
+.bloc {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background-color: var(--couleur-papier);
+  border: 1px solid var(--couleur-bordure);
+  border-radius: var(--rayon-lg);
+  box-shadow: var(--ombre-sm);
+
+  &__entete {
+    display: flex;
+    gap: var(--espace-sm);
+    align-items: center;
+    padding: var(--espace-md) var(--espace-lg);
+    background-color: var(--couleur-fond);
+    border-bottom: 1px solid var(--couleur-bordure);
+  }
+
+  /* Pastille de rubrique. Décorative : le titre à côté dit déjà de quoi il
+     s'agit, et une émoji lue à voix haute n'apporterait rien. */
+  &__pastille {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    font-size: 1.125rem;
+    background-color: var(--couleur-papier);
+    border: 1px solid var(--couleur-bordure);
+    border-radius: var(--rayon-rond);
+  }
+
+  &__intitule {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+
+    p {
+      margin: 0;
+      text-wrap: pretty;
+    }
+  }
+
+  &__titre {
+    margin: 0;
+    font-family: var(--police);
+    font-size: var(--taille-md);
+    font-weight: 700;
+  }
+
+  &__champs {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espace-lg);
+    padding: var(--espace-lg);
+  }
+
+  &__pied {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--espace-sm);
+    padding: var(--espace-md) var(--espace-lg);
+    background-color: var(--couleur-fond);
+    border-top: 1px solid var(--couleur-bordure);
+  }
+
+  /* Hauteur réservée en permanence : sans elle, l'apparition du message
+     décalerait tout le bloc au moment précis où l'on regarde le bouton
+     qu'on vient de presser. */
+  &__issue {
+    min-height: 2.75rem;
+    margin: 0;
+    padding: var(--espace-xs) var(--espace-lg);
+    font-size: var(--taille-sm);
+    font-weight: 600;
+    line-height: 2.75rem;
+    color: transparent;
+
+    &--succes {
+      color: var(--couleur-succes);
+      background-color: var(--couleur-succes-fond);
+    }
+
+    &--erreur {
+      color: var(--couleur-danger);
+      background-color: var(--couleur-danger-fond);
+    }
+  }
+}
+
+/* Deux champs par ligne dès qu'il y a la place. Prénom et nom se lisent
+   ensemble ; les séparer verticalement les éloigne pour rien. */
+.champs-cote-a-cote {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--espace-lg);
+
+  @include a-partir-de('sm') {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Saisie et bouton d'action sur la même ligne quand la largeur le permet.
+   Le bouton reste sous le champ sur téléphone : côte à côte, il volerait la
+   place au texte. */
+.champ-avec-action {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espace-xs);
+
+  @include a-partir-de('sm') {
+    flex-direction: row;
+    align-items: stretch;
+
+    .champ__saisie {
+      flex: 1;
+    }
+  }
+}
+
+/* --- Nuancier ---------------------------------------------------------- */
+
+.nuancier {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espace-xs);
+}
+
+.nuancier__choix {
   @include cible-tactile;
 
   display: inline-flex;
   gap: var(--espace-xs);
   align-items: center;
-  padding: var(--espace-2xs) var(--espace-sm) var(--espace-2xs) var(--espace-2xs);
+  padding: var(--espace-2xs) var(--espace-md) var(--espace-2xs) var(--espace-2xs);
+  font-size: var(--taille-sm);
   font-weight: 600;
   color: var(--couleur-texte-doux);
   cursor: pointer;
   background-color: var(--couleur-fond);
-  border: 1px solid var(--couleur-bordure);
+  border: 2px solid transparent;
   border-radius: var(--rayon-rond);
+  transition: background-color 120ms ease;
 
   &[data-hovered] {
     background-color: var(--couleur-fond-survol);
   }
 
+  // Sélection : bordure pleine *et* graisse *et* couleur de texte. La
+  // pastille change déjà de teinte, mais la teinte seule ne suffit jamais.
   &[data-selected] {
     font-weight: 700;
     color: var(--couleur-texte);
-    background-color: var(--couleur-primaire-fond);
+    background-color: var(--couleur-papier);
     border-color: var(--couleur-primaire);
   }
 }

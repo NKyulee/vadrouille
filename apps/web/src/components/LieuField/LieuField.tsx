@@ -149,11 +149,11 @@ export default function LieuField({ lieux, valeur, onChange, onLieuCree }: Props
       {/* On propose, on ne devine pas : le géocodeur se trompe, et une salle
           placée au mauvais endroit sur la carte enverrait quelqu'un ailleurs. */}
       {propositions.length > 0 ? (
-        <ul role="list" className="pile pile--xs">
+        <ul role="list" className="propositions">
           {propositions.map((p) => (
             <li key={p.label}>
               <Button
-                className={`bouton bouton--discret proposition ${choisie?.label === p.label ? 'proposition--choisie' : ''}`}
+                className={`proposition ${choisie?.label === p.label ? 'proposition--choisie' : ''}`}
                 onPress={() => setChoisie(p)}
               >
                 {p.label}

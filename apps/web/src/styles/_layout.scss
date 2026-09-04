@@ -1,0 +1,281 @@
+// Primitives de mise en page et d'affichage.
+//
+// React Aria ne fournit que du comportement : aucune primitive d'empilement,
+// d'alignement, de carte ou de badge. D'où ces quelques classes.
+// Volontairement peu nombreuses : tout le reste se fait en SCSS local, dans
+// le dossier du composant.
+
+@use 'sass:map';
+@use 'mixins' as *;
+@use 'tokens';
+
+// --- Mise en page -----------------------------------------------------------
+
+// Empilement vertical
+.pile {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espace-md);
+
+  @each $nom, $_ in tokens.$espaces {
+    &--#{$nom} {
+      gap: var(--espace-#{$nom});
+    }
+  }
+}
+
+// Alignement horizontal
+.rangee {
+  display: flex;
+  flex-direction: row;
+  gap: var(--espace-md);
+  align-items: center;
+
+  @each $nom, $_ in tokens.$espaces {
+    &--#{$nom} {
+      gap: var(--espace-#{$nom});
+    }
+  }
+
+  &--espacee {
+    justify-content: space-between;
+  }
+
+  &--haut {
+    align-items: flex-start;
+  }
+
+  &--repli {
+    flex-wrap: wrap;
+  }
+}
+
+// Grille de cartes : une colonne sur téléphone, deux dès la tablette, trois
+// sur grand écran. `minmax(0, 1fr)` et non `1fr` : sans ça une carte au
+// contenu long refuse de rétrécir et fait déborder la grille.
+.grille {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--espace-sm);
+
+  @include a-partir-de('sm') {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  @include a-partir-de('lg') {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  // Quand chaque <li> enveloppe une carte : hauteurs égales sur une même
+  // ligne. À ne pas appliquer quand le <li> *est* la carte — les enfants
+  // directs se feraient étirer (un avatar deviendrait un rectangle).
+  &--cartes > li {
+    display: flex;
+  }
+
+  &--cartes > li > * {
+    flex: 1;
+  }
+
+  // Deux colonnes suffisent pour des lignes basses (membres, contacts).
+  &--large {
+    @include a-partir-de('lg') {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+}
+
+// Colonne centrée, largeur de lecture
+.conteneur {
+  width: 100%;
+  max-width: var(--largeur-contenu);
+  padding-inline: var(--espace-md);
+  margin-inline: auto;
+
+  &--aere {
+    padding-block: var(--espace-xl);
+  }
+}
+
+// --- Affichage --------------------------------------------------------------
+
+// Carte
+.carte {
+  padding: var(--espace-lg);
+  background-color: var(--couleur-papier);
+  border: 1px solid var(--couleur-bordure);
+  border-radius: var(--rayon-lg);
+  box-shadow: var(--ombre-sm);
+}
+
+/* Fiche d'informations : intitulé / valeur.
+   Une colonne sur téléphone, deux dès qu'il y a la place. */
+.fiche {
+  display: grid;
+  gap: var(--espace-sm);
+  margin: 0;
+  padding: var(--espace-md);
+  background-color: var(--couleur-papier);
+  border: 1px solid var(--couleur-bordure);
+  border-radius: var(--rayon-lg);
+
+  @include a-partir-de('sm') {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--espace-md);
+  }
+
+  &__ligne {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+
+    dt {
+      font-size: var(--taille-sm);
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      color: var(--couleur-texte-doux);
+    }
+
+    dd {
+      margin: 0;
+      overflow-wrap: anywhere;
+    }
+  }
+}
+
+// Confirmation d'une action réussie, annoncée par un role="status".
+.message-issue {
+  padding: var(--espace-sm) var(--espace-md);
+  font-weight: 600;
+  color: var(--couleur-succes);
+  background-color: var(--couleur-succes-fond);
+  border-radius: var(--rayon-md);
+}
+
+// Texte secondaire
+.texte-doux {
+  color: var(--couleur-texte-doux);
+}
+
+.texte-sm {
+  font-size: var(--taille-sm);
+}
+
+// Titre de section : le serif est réservé aux titres de page, les sections
+// restent en sans-serif pour ne pas concurrencer le <h1>.
+.titre-section {
+  font-family: var(--police);
+  font-size: var(--taille-md);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--couleur-texte-doux);
+}
+
+// Pastille d'état
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--espace-2xs) var(--espace-sm);
+  font-size: var(--taille-sm);
+  font-weight: 600;
+  color: var(--couleur-neutre);
+  background-color: var(--couleur-neutre-fond);
+  border-radius: var(--rayon-rond);
+
+  &--succes {
+    color: var(--couleur-succes);
+    background-color: var(--couleur-succes-fond);
+  }
+
+  &--danger {
+    color: var(--couleur-danger);
+    background-color: var(--couleur-danger-fond);
+  }
+}
+
+// Bloc de code
+.bloc-code {
+  display: block;
+  padding: var(--espace-md);
+  overflow-x: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  background-color: var(--couleur-papier);
+  border: 1px solid var(--couleur-bordure);
+  border-radius: var(--rayon-md);
+}
+
+// --- Interactif -------------------------------------------------------------
+
+// Habille aussi bien le <Link> de react-router que celui de
+// react-aria-components : les deux rendent une balise <a>.
+.lien {
+  color: var(--couleur-primaire);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  cursor: pointer;
+
+  &[data-hovered],
+  &:hover {
+    color: var(--couleur-primaire-forte);
+  }
+}
+
+// Prévu pour le <Button> de react-aria-components : les états passent par ses
+// data-attributs, pas par :hover / :active.
+.bouton {
+  display: inline-flex;
+  gap: var(--espace-xs);
+  align-items: center;
+  justify-content: center;
+  min-height: var(--cible-min);
+  padding: var(--espace-xs) var(--espace-lg);
+  font-weight: 600;
+  color: var(--couleur-primaire-texte);
+  cursor: pointer;
+  background-color: var(--couleur-primaire);
+  border: 1px solid transparent;
+  border-radius: var(--rayon-rond);
+  transition: background-color 120ms ease;
+
+  &[data-hovered] {
+    background-color: var(--couleur-primaire-forte);
+  }
+
+  &[data-pressed] {
+    background-color: var(--couleur-primaire-forte);
+    transform: translateY(1px);
+  }
+
+  &[data-disabled] {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+
+  &--discret {
+    color: var(--couleur-texte);
+    background-color: transparent;
+    border-color: var(--couleur-bordure);
+
+    &[data-hovered],
+    &[data-pressed] {
+      background-color: var(--couleur-fond-survol);
+    }
+  }
+
+  // Action destructrice. Toujours accompagnée d'une confirmation, jamais
+  // seule dans une liste.
+  &--danger {
+    background-color: var(--couleur-danger);
+    color: #ffffff;
+
+    &[data-hovered],
+    &[data-pressed] {
+      background-color: var(--couleur-danger);
+      filter: brightness(0.9);
+    }
+  }
+}

@@ -1,0 +1,88 @@
+@use '../../styles/mixins' as *;
+
+.jours {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espace-md);
+}
+
+.jours__liste {
+  display: flex;
+  gap: var(--espace-2xs);
+
+  // Sept jours ne tiennent pas sur un écran de téléphone : on fait défiler
+  // plutôt que de rétrécir les cibles. Le clavier reste couvert par React
+  // Aria, qui fait défiler jusqu'à l'onglet focalisé.
+  padding-bottom: var(--espace-2xs);
+  overflow-x: auto;
+  scrollbar-width: thin;
+
+  // Dès la tablette les sept jours tiennent en entier : plus de défilement,
+  // et les onglets se partagent la largeur.
+  @include a-partir-de('sm') {
+    overflow-x: visible;
+  }
+}
+
+// Abrégé sur téléphone, jour complet ensuite. Le libellé masqué l'est en
+// `display: none` (via hors-ecran pour le court, qui reste lisible aux
+// lecteurs d'écran) — jamais les deux à la fois.
+.jours__court {
+  display: none;
+  white-space: nowrap;
+}
+
+.jours__date {
+  margin: 0;
+}
+
+@include jusqu-a('sm') {
+  .jours__court {
+    display: block;
+  }
+
+  .jours__long {
+    @include hors-ecran;
+  }
+}
+
+.jours__onglet {
+  @include cible-tactile;
+
+  display: flex;
+  flex: 1 0 auto;
+  align-items: center;
+  justify-content: center;
+  padding-inline: var(--espace-sm);
+  font-weight: 600;
+  color: var(--couleur-texte-doux);
+  cursor: pointer;
+  background-color: var(--couleur-papier);
+  border: 1px solid var(--couleur-bordure);
+  border-radius: var(--rayon-rond);
+  transition: background-color 120ms ease;
+
+  &[data-hovered] {
+    background-color: var(--couleur-fond-survol);
+  }
+
+  // data-selected est posé par React Aria. Trois signaux là encore :
+  // fond plein, couleur de texte inversée, graisse.
+  &[data-selected] {
+    font-weight: 700;
+    color: var(--couleur-primaire-texte);
+    background-color: var(--couleur-primaire);
+    border-color: var(--couleur-primaire);
+  }
+
+  &[data-disabled] {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
+  @include a-partir-de('sm') {
+    flex: 1 1 0;
+    min-width: 0;
+    padding-inline: var(--espace-xs);
+  }
+}

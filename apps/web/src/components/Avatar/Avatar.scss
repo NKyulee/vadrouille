@@ -1,0 +1,58 @@
+.avatar {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--police);
+  font-weight: 700;
+  line-height: 1;
+  color: var(--avatar-texte);
+  background-color: var(--avatar-fond);
+  border: 2px solid var(--couleur-papier);
+  border-radius: var(--rayon-rond);
+
+  // Les couleurs d'avatar sont des teintes de marque, pas des jetons
+  // globaux : elles ne servent qu'ici, donc elles vivent ici.
+  &[data-couleur='foret'] {
+    --avatar-fond: #2f6b4f;
+    --avatar-texte: #ffffff;
+  }
+
+  &[data-couleur='or'] {
+    --avatar-fond: #9a7b12;
+    --avatar-texte: #ffffff;
+  }
+
+  &[data-couleur='brique'] {
+    --avatar-fond: #a4402f;
+    --avatar-texte: #ffffff;
+  }
+
+  &[data-couleur='ardoise'] {
+    --avatar-fond: #46586a;
+    --avatar-texte: #ffffff;
+  }
+
+  &[data-couleur='prune'] {
+    --avatar-fond: #6d3b63;
+    --avatar-texte: #ffffff;
+  }
+
+  &--sm {
+    width: 30px;
+    height: 30px;
+    font-size: 0.75rem;
+  }
+
+  &--md {
+    width: 40px;
+    height: 40px;
+    font-size: 0.875rem;
+  }
+
+  &--lg {
+    width: 56px;
+    height: 56px;
+    font-size: 1.125rem;
+  }
+}

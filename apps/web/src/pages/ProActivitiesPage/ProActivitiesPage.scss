@@ -1,0 +1,34 @@
+.pro-activite {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espace-md);
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: var(--espace-md);
+  background-color: var(--couleur-papier);
+  border: 1px solid var(--couleur-bordure);
+  border-radius: var(--rayon-lg);
+
+  &__intitule {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 10rem;
+
+    p {
+      margin: 0;
+    }
+  }
+
+  &__titre {
+    margin: 0;
+    font-size: var(--taille-lg);
+  }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--espace-xs);
+  }
+}

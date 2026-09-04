@@ -1,0 +1,65 @@
+// Mixins partagés. À importer là où on en a besoin :
+//   @use '../../styles/mixins' as *;
+
+@use 'sass:map';
+@use 'tokens';
+
+// Points de rupture — mobile d'abord, donc `a-partir-de` en priorité.
+//
+// Volontairement en min-width / max-width, pas en syntaxe d'intervalle
+// (`width >= 48em`) : celle-ci n'existe qu'à partir de Safari 16.4 et
+// Chrome 104, et un navigateur qui ne la comprend pas **ignore la règle
+// entière** — soit zéro style responsive sur un appareil un peu ancien.
+// Sur ce public, ça n'est pas un détail.
+@mixin a-partir-de($nom) {
+  $largeur: map.get(tokens.$ruptures, $nom);
+
+  @if not $largeur {
+    @error "Rupture inconnue : #{$nom}. Attendu : #{map.keys(tokens.$ruptures)}.";
+  }
+
+  @media (min-width: $largeur) {
+    @content;
+  }
+}
+
+// Le retrait de 0.02em évite le chevauchement d'un pixel avec `a-partir-de`
+// au seuil exact, sans recourir à la syntaxe d'intervalle.
+@mixin jusqu-a($nom) {
+  $largeur: map.get(tokens.$ruptures, $nom);
+
+  @if not $largeur {
+    @error "Rupture inconnue : #{$nom}. Attendu : #{map.keys(tokens.$ruptures)}.";
+  }
+
+  @media (max-width: $largeur - 0.02em) {
+    @content;
+  }
+}
+
+// Cible tactile confortable. Le public cible vise mal : on ne descend jamais
+// sous --cible-min, même quand le contenu visuel est plus petit.
+@mixin cible-tactile {
+  min-width: var(--cible-min);
+  min-height: var(--cible-min);
+}
+
+// Réservé aux lecteurs d'écran.
+@mixin hors-ecran {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+// Coupe le texte après $lignes lignes.
+@mixin tronquer($lignes: 2) {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: $lignes;
+  overflow: hidden;
+}

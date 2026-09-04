@@ -1,0 +1,19 @@
+.membre {
+  display: flex;
+  gap: var(--espace-sm);
+  align-items: center;
+  padding: var(--espace-sm) var(--espace-md);
+  background-color: var(--couleur-papier);
+  border: 1px solid var(--couleur-bordure);
+  border-radius: var(--rayon-lg);
+
+  &__identite {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  &__nom {
+    font-weight: 600;
+  }
+}

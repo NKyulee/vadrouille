@@ -1,0 +1,182 @@
+// Palette et jetons de design de La vadrouille.
+// Seul fichier à éditer pour la charte : couleurs, espacements, typo, rayons.
+//
+// Deux niveaux volontairement :
+//   - variables Sass ($...)      → compilation : calculs, mixins, fonctions
+//   - propriétés CSS (--...)     → exécution : c'est ce qui bascule en sombre
+// Ne jamais utiliser une variable Sass là où le thème sombre doit agir.
+
+@use 'sass:color';
+@use 'sass:map';
+
+// --- Palette de marque ------------------------------------------------------
+// `forest-deep` est la seule valeur reprise telle quelle de la maquette
+// (lisible dans son box-shadow : rgba(29, 51, 41)). Les autres sont accordées
+// autour, et vérifiées en contraste (voir plus bas).
+
+$cream: #f7f3ea;
+$paper: #ffffff;
+$forest: #2f6b4f;
+$forest-deep: #1d3329;
+$ink: #1f2420;
+$ink-soft: #5c6660;
+$gold: #c9a227;
+$line: #e3ded2;
+
+// Sombre — mêmes rôles, valeurs retravaillées pour rester lisibles.
+$cream-nuit: #141a17;
+$paper-nuit: #1d2621;
+$forest-nuit: #86c9a4;
+$ink-nuit: #eff0ea;
+$ink-soft-nuit: #adb5af;
+$gold-nuit: #e0be55;
+$line-nuit: #2e3a34;
+
+// --- Échelles ---------------------------------------------------------------
+
+$espaces: (
+  '2xs': 0.25rem,
+  'xs': 0.5rem,
+  'sm': 0.75rem,
+  'md': 1rem,
+  'lg': 1.5rem,
+  'xl': 2.5rem,
+);
+
+$ruptures: (
+  'sm': 48em,
+  'md': 62em,
+  'lg': 75em,
+);
+
+// --- Propriétés CSS ---------------------------------------------------------
+
+:root {
+  color-scheme: light dark;
+
+  // Couleurs
+  --couleur-fond: #{$cream};
+  --couleur-papier: #{$paper};
+  --couleur-fond-survol: #{color.mix($forest, $cream, 8%)};
+  --couleur-texte: #{$ink};
+  --couleur-texte-doux: #{$ink-soft};
+  --couleur-bordure: #{$line};
+
+  --couleur-primaire: #{$forest};
+  --couleur-primaire-forte: #{$forest-deep};
+  --couleur-primaire-texte: #{$paper};
+  --couleur-primaire-fond: #{color.mix($forest, $cream, 12%)};
+
+  --couleur-accent: #{$gold};
+  --couleur-succes: #{$forest};
+  --couleur-succes-fond: #{color.mix($forest, $cream, 12%)};
+  --couleur-danger: #a3232a;
+  --couleur-danger-fond: #fbe8e9;
+  --couleur-neutre: #{$ink-soft};
+  --couleur-neutre-fond: #{color.mix($ink-soft, $cream, 12%)};
+
+  // Espacements
+  --espace-2xs: #{map.get($espaces, '2xs')};
+  --espace-xs: #{map.get($espaces, 'xs')};
+  --espace-sm: #{map.get($espaces, 'sm')};
+  --espace-md: #{map.get($espaces, 'md')};
+  --espace-lg: #{map.get($espaces, 'lg')};
+  --espace-xl: #{map.get($espaces, 'xl')};
+
+  // Typographie — le serif de la maquette est réservé aux titres.
+  --police: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --police-titre: Georgia, 'Times New Roman', serif;
+  --police-mono: ui-monospace, sfmono-regular, menlo, consolas, monospace;
+
+  // Public âgé ou malvoyant : l'échelle démarre plus haut que d'habitude.
+  --taille-sm: 0.9375rem;
+  --taille-md: 1.0625rem;
+  --taille-lg: 1.25rem;
+  --taille-xl: 1.5rem;
+  --taille-2xl: 1.875rem;
+
+  // Formes
+  --rayon-sm: 6px;
+  --rayon-md: 10px;
+  --rayon-lg: 18px;
+  --rayon-rond: 999px;
+  --ombre-sm: 0 1px 2px rgb(29 51 41 / 8%);
+  --ombre-md: 0 4px 14px rgb(29 51 41 / 10%);
+
+  // Accessibilité — anneau de focus large et contrasté : le public cible
+  // navigue au clavier physique ou à la télécommande d'assistance.
+  --focus-epaisseur: 3px;
+  --focus-ecart: 2px;
+  --focus-couleur: #{$forest};
+  --cible-min: 48px;
+
+  // Coque — les trois valeurs ci-dessous évoluent avec la taille d'écran,
+  // voir le bloc « Adaptation » plus bas.
+  --hauteur-entete: 60px;
+  --hauteur-barre-nav: 68px;
+  --largeur-contenu: 30rem;
+  --largeur-barre-nav-max: 30rem;
+  --largeur-rail: 15rem;
+}
+
+/* --- Adaptation ------------------------------------------------------------
+   Mobile d'abord : les valeurs ci-dessus sont celles du téléphone, et ne sont
+   élargies qu'ensuite. Les media queries sont écrites à la main ici (plutôt
+   qu'avec le mixin `a-partir-de`) parce que _mixins.scss dépend déjà de ce
+   fichier — l'inverse créerait un cycle. Garder les seuils synchronisés avec
+   la map $ruptures ci-dessus, et rester en min-width pour les mêmes raisons
+   de compatibilité (voir _mixins.scss). */
+
+// Tablette
+@media (min-width: map.get($ruptures, 'sm')) {
+  :root {
+    --largeur-contenu: 44rem;
+    --taille-md: 1.09375rem;
+    --taille-2xl: 2.125rem;
+  }
+}
+
+// Ordinateur : le rail de navigation remplace la barre du bas.
+@media (min-width: map.get($ruptures, 'md')) {
+  :root {
+    --largeur-contenu: 58rem;
+    --taille-lg: 1.3125rem;
+    --taille-xl: 1.625rem;
+    --taille-2xl: 2.25rem;
+  }
+}
+
+@media (min-width: map.get($ruptures, 'lg')) {
+  :root {
+    --largeur-contenu: 66rem;
+    --largeur-rail: 17rem;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --couleur-fond: #{$cream-nuit};
+    --couleur-papier: #{$paper-nuit};
+    --couleur-fond-survol: #{color.mix($forest-nuit, $cream-nuit, 12%)};
+    --couleur-texte: #{$ink-nuit};
+    --couleur-texte-doux: #{$ink-soft-nuit};
+    --couleur-bordure: #{$line-nuit};
+
+    --couleur-primaire: #{$forest-nuit};
+    --couleur-primaire-forte: #{color.adjust($forest-nuit, $lightness: 10%)};
+    --couleur-primaire-texte: #{$forest-deep};
+    --couleur-primaire-fond: #{color.mix($forest-nuit, $cream-nuit, 18%)};
+
+    --couleur-accent: #{$gold-nuit};
+    --couleur-succes: #{$forest-nuit};
+    --couleur-succes-fond: #{color.mix($forest-nuit, $cream-nuit, 18%)};
+    --couleur-danger: #ff9a9a;
+    --couleur-danger-fond: #38191b;
+    --couleur-neutre: #{$ink-soft-nuit};
+    --couleur-neutre-fond: #{color.mix($ink-soft-nuit, $cream-nuit, 18%)};
+
+    --focus-couleur: #{$forest-nuit};
+    --ombre-sm: 0 1px 2px rgb(0 0 0 / 40%);
+    --ombre-md: 0 4px 14px rgb(0 0 0 / 45%);
+  }
+}

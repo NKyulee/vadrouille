@@ -1,0 +1,39 @@
+@use '../../styles/mixins' as *;
+
+.connexion {
+  max-width: 30rem;
+
+  // Le public cible saisit lentement et vise mal : les champs de connexion
+  // sont plus grands que partout ailleurs, et le bouton fait toute la
+  // largeur sur téléphone.
+  &__saisie {
+    min-height: 56px;
+    font-size: var(--taille-lg);
+  }
+
+  &__code {
+    font-family: var(--police-mono);
+    font-size: var(--taille-2xl);
+    letter-spacing: 0.35em;
+    text-align: center;
+  }
+
+  &__valider {
+    justify-content: center;
+    min-height: 56px;
+    font-size: var(--taille-lg);
+
+    @include a-partir-de('sm') {
+      align-self: flex-start;
+      padding-inline: var(--espace-xl);
+    }
+  }
+}
+
+.message-erreur {
+  padding: var(--espace-sm) var(--espace-md);
+  font-weight: 600;
+  color: var(--couleur-danger);
+  background-color: var(--couleur-danger-fond);
+  border-radius: var(--rayon-md);
+}

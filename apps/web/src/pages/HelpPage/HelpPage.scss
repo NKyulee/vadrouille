@@ -1,0 +1,39 @@
+.contact {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espace-sm);
+  align-items: center;
+  padding: var(--espace-sm) var(--espace-md);
+  background-color: var(--couleur-papier);
+  border: 1px solid var(--couleur-bordure);
+  border-radius: var(--rayon-lg);
+
+  // Urgence : liseré rouge en plus du regroupement sous le titre
+  // « Urgences ». La couleur ne porte jamais l'information seule.
+  &[data-urgence] {
+    border-left: 4px solid var(--couleur-danger);
+  }
+
+  &__identite {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-width: 8rem;
+  }
+
+  &__nom {
+    font-weight: 600;
+  }
+
+  // Le numéro est le geste principal de la page : cible large, jamais
+  // rétrécie, et lisible d'un coup d'œil.
+  &__appel {
+    font-variant-numeric: tabular-nums;
+    text-decoration: none;
+    white-space: nowrap;
+
+    &:hover {
+      background-color: var(--couleur-primaire-forte);
+    }
+  }
+}

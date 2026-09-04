@@ -1,0 +1,95 @@
+@use '../../styles/mixins' as *;
+
+/* Une entrée de navigation, dans les deux dispositions de la coque :
+   - barre du bas : icône au-dessus du libellé, centrée
+   - rail latéral : icône à gauche du libellé, alignée à gauche
+   Le composant React est le même, seul le SCSS change. */
+
+.nav-item {
+  @include cible-tactile;
+
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  align-items: center;
+  justify-content: center;
+  // Cinq entrées sur un écran de 375 px : ~68 px chacune. Le rembourrage
+  // horizontal est réduit au minimum pour laisser la place au libellé plutôt
+  // que de rapetisser le texte — le public cible lit mal les petits corps.
+  padding: var(--espace-2xs) 2px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--couleur-texte-doux);
+  text-decoration: none;
+  border-radius: var(--rayon-md);
+
+  &:hover {
+    color: var(--couleur-texte);
+  }
+
+  &__icone {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    font-size: 1.0625rem;
+    line-height: 1;
+    border-radius: var(--rayon-md);
+  }
+
+  &__label {
+    // Sur la barre du bas, un libellé long ne doit ni passer à la ligne ni
+    // pousser ses voisins.
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  // Actif : couleur *et* pastille derrière l'icône *et* graisse. Trois
+  // signaux, parce que la couleur seule ne passe pas en daltonisme.
+  &[aria-current='page'] {
+    color: var(--couleur-primaire);
+
+    .nav-item__icone {
+      background-color: var(--couleur-primaire-fond);
+    }
+
+    .nav-item__label {
+      font-weight: 700;
+    }
+  }
+
+  // --- Rail latéral -------------------------------------------------------
+  @include a-partir-de('md') {
+    flex-direction: row;
+    gap: var(--espace-sm);
+    justify-content: flex-start;
+    width: 100%;
+    padding: var(--espace-xs) var(--espace-sm);
+    font-size: var(--taille-md);
+
+    // Sur le rail, la place ne manque plus : le libellé peut respirer.
+    .nav-item__label {
+      overflow: visible;
+      text-overflow: clip;
+    }
+
+    &:hover {
+      background-color: var(--couleur-fond-survol);
+    }
+
+    // Sur le rail, la pastille d'icône ferait double emploi avec le fond
+    // plein de l'entrée active : c'est l'entrée entière qui se colore.
+    &[aria-current='page'] {
+      background-color: var(--couleur-primaire-fond);
+
+      .nav-item__icone {
+        background-color: transparent;
+      }
+    }
+  }
+}

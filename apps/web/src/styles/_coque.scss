@@ -1,0 +1,227 @@
+@use 'mixins' as *;
+
+/* Coque de l'application, en deux dispositions issues du même DOM.
+
+   Téléphone et tablette : entête collée en haut, barre de navigation fixée
+   en bas — à portée du pouce.
+   À partir de 62em : rail de navigation à gauche, plus d'entête, le contenu
+   occupe toute la hauteur.
+
+   Ce qui bascule est uniquement le placement ; aucun composant n'est monté
+   ni démonté au redimensionnement. */
+
+.coque {
+  display: flex;
+  flex-direction: column;
+
+  // 100vh d'abord : `dvh` n'existe qu'à partir de Safari 15.4, un navigateur
+  // plus ancien ignore la seconde ligne et garde la première.
+  min-height: 100vh;
+  min-height: 100dvh;
+  background-color: var(--couleur-fond);
+}
+
+.coque__entete {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  height: var(--hauteur-entete);
+  background-color: var(--couleur-papier);
+  border-bottom: 1px solid var(--couleur-bordure);
+}
+
+.coque__marque {
+  font-family: var(--police-titre);
+  font-size: var(--taille-xl);
+  color: var(--couleur-primaire-forte);
+
+  // Variante du rail : masquée tant qu'il n'y a pas de rail, et masquée en
+  // display:none pour ne pas être lue en double.
+  &--rail {
+    display: none;
+  }
+}
+
+.coque__contenu {
+  flex: 1;
+  width: 100%;
+  max-width: var(--largeur-contenu);
+  padding: var(--espace-md);
+
+  // La barre du bas est fixe : sans cette réserve, la dernière carte passe
+  // dessous. `safe-area-inset-bottom` couvre la barre gestuelle iOS.
+  padding-bottom: calc(var(--hauteur-barre-nav) + var(--espace-lg) + env(safe-area-inset-bottom));
+  margin-inline: auto;
+
+  // Le lien d'évitement donne le focus ici : pas d'anneau sur un conteneur.
+  &:focus {
+    outline: none;
+  }
+
+  @include a-partir-de('sm') {
+    padding-inline: var(--espace-lg);
+  }
+}
+
+/* --- Navigation : barre du bas (téléphone, tablette) ---------------------- */
+
+.coque__nav {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 10;
+  width: 100%;
+  max-width: var(--largeur-barre-nav-max);
+  height: calc(var(--hauteur-barre-nav) + env(safe-area-inset-bottom));
+  padding: var(--espace-2xs) var(--espace-xs) calc(var(--espace-2xs) + env(safe-area-inset-bottom));
+  margin-inline: auto;
+  background-color: var(--couleur-papier);
+  border-top: 1px solid var(--couleur-bordure);
+
+  @include a-partir-de('sm') {
+    border-inline: 1px solid var(--couleur-bordure);
+    border-start-start-radius: var(--rayon-lg);
+    border-start-end-radius: var(--rayon-lg);
+  }
+}
+
+.coque__nav-liste {
+  display: flex;
+  gap: var(--espace-2xs);
+  align-items: center;
+  justify-content: space-around;
+  height: 100%;
+}
+
+.coque__nav-item {
+  display: flex;
+  flex: 1;
+  justify-content: center;
+  min-width: 0;
+}
+
+/* --- Navigation : rail latéral (ordinateur) ------------------------------- */
+
+@include a-partir-de('md') {
+  .coque {
+    display: grid;
+    grid-template-areas: 'nav contenu';
+    grid-template-columns: var(--largeur-rail) minmax(0, 1fr);
+  }
+
+  // L'entête disparaît : la marque passe dans le rail.
+  .coque__entete {
+    display: none;
+  }
+
+  .coque__marque--rail {
+    display: block;
+    padding: var(--espace-lg) var(--espace-md) var(--espace-md);
+  }
+
+  .coque__contenu {
+    grid-area: contenu;
+    padding: var(--espace-xl) var(--espace-lg);
+
+    // Plus de barre du bas à contourner.
+    padding-bottom: var(--espace-xl);
+    margin-inline: 0;
+  }
+
+  .coque__nav {
+    position: sticky;
+    top: 0;
+    bottom: auto;
+    grid-area: nav;
+
+    // Remise à plat des règles de la barre du bas.
+    max-width: none;
+    height: 100vh;
+    height: 100dvh;
+    padding: 0 var(--espace-sm) var(--espace-md);
+    margin-inline: 0;
+    border: none;
+    border-right: 1px solid var(--couleur-bordure);
+    border-radius: 0;
+  }
+
+  .coque__nav-liste {
+    flex-direction: column;
+    gap: var(--espace-2xs);
+    align-items: stretch;
+    justify-content: flex-start;
+    height: auto;
+  }
+
+  .coque__nav-item {
+    flex: 0 0 auto;
+  }
+}
+
+/* --- Écran bas de plafond -------------------------------------------------
+   Téléphone en paysage, ou fenêtre très courte : l'entête collée et la barre
+   du bas mangent presque tout. On rend l'entête non collée et on resserre. */
+
+@media (max-height: 30rem) and (max-width: 61.98em) {
+  .coque__entete {
+    position: static;
+  }
+
+  .coque__contenu {
+    padding-block: var(--espace-sm);
+    padding-bottom: calc(var(--hauteur-barre-nav) + var(--espace-md));
+  }
+}
+
+/* --- Variante professionnelle ---------------------------------------------
+   Même coque, repère visuel différent : on doit voir d'un coup d'œil qu'on
+   n'est plus dans l'espace membre. */
+
+.coque--pro {
+  .coque__entete {
+    justify-content: space-between;
+    padding-inline: var(--espace-md);
+    color: var(--couleur-primaire-texte);
+    background-color: var(--couleur-primaire-forte);
+    border-bottom-color: var(--couleur-primaire-forte);
+  }
+
+  .coque__marque {
+    color: inherit;
+  }
+}
+
+/* Bascule d'un espace à l'autre. Il n'y a pas d'authentification : c'est un
+   simple lien, pas un contrôle d'accès. */
+.coque__bascule {
+  padding: 0;
+  cursor: pointer;
+  background: none;
+  border: none;
+  font-size: var(--taille-sm);
+  font-weight: 600;
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  white-space: nowrap;
+}
+
+.coque__marque-pro {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+
+.coque__marque-role {
+  font-family: var(--police);
+  font-size: var(--taille-sm);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}

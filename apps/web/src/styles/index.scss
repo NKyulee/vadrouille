@@ -1,0 +1,7 @@
+// Point d'entrée des styles globaux.
+// L'ordre compte : jetons d'abord (les autres fichiers s'en servent),
+// puis le reset, les primitives, et la coque partagée par les deux espaces.
+@use 'tokens';
+@use 'base';
+@use 'layout';
+@use 'coque';

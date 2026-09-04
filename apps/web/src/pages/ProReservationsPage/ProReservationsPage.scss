@@ -1,0 +1,61 @@
+.encaissement {
+  padding: var(--espace-sm) var(--espace-md);
+  font-weight: 600;
+  color: var(--couleur-primaire-forte);
+  background-color: var(--couleur-primaire-fond);
+  border-radius: var(--rayon-md);
+}
+
+.reservation {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espace-sm);
+  align-items: center;
+  padding: var(--espace-sm) var(--espace-md);
+  background-color: var(--couleur-papier);
+  border: 1px solid var(--couleur-bordure);
+  border-radius: var(--rayon-lg);
+
+  &__intitule {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 10rem;
+
+    p {
+      margin: 0;
+    }
+  }
+
+  &__titre {
+    font-size: var(--taille-md);
+    font-weight: 600;
+  }
+
+  // Lien étendu : voir ActivityCard.scss pour le détail du motif.
+  &__lien {
+    color: inherit;
+    text-decoration: none;
+
+    &::after {
+      position: absolute;
+      inset: 0;
+      content: '';
+      border-radius: var(--rayon-lg);
+    }
+
+    &[data-hovered] {
+      color: var(--couleur-primaire);
+      text-decoration: underline;
+      text-underline-offset: 0.2em;
+    }
+  }
+
+  &__statuts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--espace-2xs);
+  }
+}

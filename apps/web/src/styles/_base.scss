@@ -1,0 +1,154 @@
+// Reset, typographie de base et règles d'accessibilité globales.
+// React Aria ne fournit aucun style : ce reset est celui du projet.
+
+@use 'mixins' as *;
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+/* Préférence de taille de texte (voir preferences.ts). Agir sur la police de
+   <html> suffit : toute l'échelle typographique et tous les espacements sont
+   en `rem`, donc tout suit. L'attribut est posé par main.tsx avant le rendu. */
+:root[data-texte='grand'] {
+  font-size: 112.5%;
+}
+
+:root[data-texte='tres-grand'] {
+  font-size: 125%;
+}
+
+body,
+h1,
+h2,
+h3,
+h4,
+p,
+figure,
+blockquote,
+dl,
+dd,
+pre {
+  margin: 0;
+}
+
+body {
+  min-height: 100vh;
+  min-height: 100dvh;
+  font-family: var(--police);
+  font-size: var(--taille-md);
+  line-height: 1.55;
+  color: var(--couleur-texte);
+  background-color: var(--couleur-fond);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--police-titre);
+  font-weight: 600;
+  line-height: 1.2;
+  text-wrap: balance;
+}
+
+h1 {
+  font-size: var(--taille-2xl);
+}
+
+h2 {
+  font-size: var(--taille-xl);
+}
+
+h3 {
+  font-size: var(--taille-lg);
+}
+
+p {
+  text-wrap: pretty;
+}
+
+ul[role='list'],
+ol[role='list'] {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+img,
+picture,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+code,
+pre,
+kbd {
+  font-family: var(--police-mono);
+  font-size: 0.9em;
+}
+
+// Focus — un seul anneau pour tout le projet.
+// React Aria pose data-focus-visible sur ses composants (Button, Link, Tab…) ;
+// :focus-visible couvre les éléments natifs. Même rendu des deux côtés.
+:focus-visible,
+[data-focus-visible] {
+  outline: var(--focus-epaisseur) solid var(--focus-couleur);
+  outline-offset: var(--focus-ecart);
+  border-radius: var(--rayon-sm);
+}
+
+// React Aria distingue lui-même souris et clavier : il ne pose
+// data-focus-visible qu'à la navigation clavier. On ne retire donc l'outline
+// natif que là où React Aria prend le relais.
+[data-rac]:focus {
+  outline: none;
+}
+
+// Lien d'évitement : premier arrêt de tabulation, visible dès qu'il a le focus.
+.lien-evitement {
+  position: absolute;
+  top: var(--espace-xs);
+  left: var(--espace-xs);
+  z-index: 100;
+  padding: var(--espace-xs) var(--espace-md);
+  color: var(--couleur-primaire-texte);
+  background-color: var(--couleur-primaire);
+  border-radius: var(--rayon-md);
+  transform: translateY(-200%);
+
+  &:focus-visible {
+    transform: translateY(0);
+  }
+}
+
+.hors-ecran {
+  @include hors-ecran;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

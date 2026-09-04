@@ -1,0 +1,124 @@
+@use '../../styles/mixins' as *;
+
+.formulaire {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espace-lg);
+  padding: var(--espace-lg);
+  background-color: var(--couleur-papier);
+  border: 1px solid var(--couleur-bordure);
+  border-radius: var(--rayon-lg);
+
+  &__grille {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--espace-lg);
+
+    @include a-partir-de('sm') {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--espace-sm);
+    padding-top: var(--espace-xs);
+    border-top: 1px solid var(--couleur-bordure);
+  }
+}
+
+/* --- Un champ ------------------------------------------------------------- */
+
+.champ {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espace-2xs);
+  min-width: 0;
+
+  &__label {
+    font-weight: 600;
+  }
+
+  &__aide {
+    font-size: var(--taille-sm);
+    color: var(--couleur-texte-doux);
+  }
+
+  &__saisie {
+    @include cible-tactile;
+
+    width: 100%;
+    padding: var(--espace-xs) var(--espace-sm);
+    color: var(--couleur-texte);
+    background-color: var(--couleur-fond);
+    border: 1px solid var(--couleur-bordure);
+    border-radius: var(--rayon-md);
+
+    &[data-hovered] {
+      border-color: var(--couleur-texte-doux);
+    }
+
+    // React Aria pose data-invalid sur le champ dès que la validation
+    // échoue : le rouge accompagne le message, il ne le remplace pas.
+    &[data-invalid] {
+      border-color: var(--couleur-danger);
+    }
+  }
+
+  &__zone {
+    min-height: 5rem;
+    resize: vertical;
+  }
+
+  // Bouton d'ouverture d'un Select : même apparence qu'une saisie.
+  &__declencheur {
+    display: flex;
+    gap: var(--espace-sm);
+    align-items: center;
+    justify-content: space-between;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  &__erreur {
+    font-size: var(--taille-sm);
+    font-weight: 600;
+    color: var(--couleur-danger);
+  }
+}
+
+/* --- Liste déroulante ------------------------------------------------------ */
+
+.liste-deroulante {
+  width: var(--trigger-width);
+  max-height: 16rem;
+  padding: var(--espace-2xs);
+  overflow: auto;
+  background-color: var(--couleur-papier);
+  border: 1px solid var(--couleur-bordure);
+  border-radius: var(--rayon-md);
+  box-shadow: var(--ombre-md);
+
+  &__option {
+    @include cible-tactile;
+
+    display: flex;
+    align-items: center;
+    padding: var(--espace-xs) var(--espace-sm);
+    cursor: pointer;
+    border-radius: var(--rayon-sm);
+    outline: none;
+
+    // React Aria pose data-focused sur l'option survolée *ou* atteinte au
+    // clavier : un seul état visuel pour les deux, comme attendu d'une liste.
+    &[data-focused] {
+      color: var(--couleur-primaire-texte);
+      background-color: var(--couleur-primaire);
+    }
+
+    &[data-selected] {
+      font-weight: 700;
+    }
+  }
+}

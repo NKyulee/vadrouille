@@ -1,0 +1,24 @@
+.groupe-avatars {
+  display: inline-flex;
+  align-items: center;
+
+  // Chevauchement : chaque avatar mord sur le précédent. La bordure claire
+  // posée dans Avatar.scss sert de séparation visuelle.
+  > * + * {
+    margin-left: -10px;
+  }
+
+  &__reste {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 30px;
+    padding-inline: var(--espace-xs);
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--couleur-texte-doux);
+    background-color: var(--couleur-neutre-fond);
+    border: 2px solid var(--couleur-papier);
+    border-radius: var(--rayon-rond);
+  }
+}

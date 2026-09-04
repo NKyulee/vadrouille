@@ -1,0 +1,72 @@
+@use '../../styles/mixins' as *;
+
+.detail__retour {
+  margin: 0;
+}
+
+
+.responsable {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espace-sm);
+  align-items: center;
+  padding: var(--espace-sm) var(--espace-md);
+  background-color: var(--couleur-papier);
+  border: 1px solid var(--couleur-bordure);
+  border-radius: var(--rayon-lg);
+
+  &__identite {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-width: 8rem;
+  }
+
+  &__nom {
+    font-weight: 600;
+  }
+
+  &__appel {
+    font-variant-numeric: tabular-nums;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+}
+
+/* Une occurrence datée : date, places restantes, inscription. */
+.seance {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espace-sm);
+  align-items: center;
+  padding: var(--espace-sm) var(--espace-md);
+  background-color: var(--couleur-papier);
+  border: 1px solid var(--couleur-bordure);
+  border-radius: var(--rayon-lg);
+
+  // Inscrit : liseré vert, redondant avec le libellé du bouton.
+  &[data-inscrit] {
+    border-left: 4px solid var(--couleur-primaire);
+  }
+
+  &__quand {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-width: 11rem;
+  }
+
+  &__date {
+    font-weight: 600;
+    // La première lettre du jour vient en minuscule de toLocaleDateString.
+    &::first-letter {
+      text-transform: uppercase;
+    }
+  }
+
+  &__action {
+    flex-shrink: 0;
+    font-size: var(--taille-sm);
+  }
+}
+

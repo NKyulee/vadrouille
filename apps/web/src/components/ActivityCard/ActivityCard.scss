@@ -1,0 +1,98 @@
+@use '../../styles/mixins' as *;
+
+.activite {
+  // Repère pour le ::after du lien étendu.
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--espace-sm);
+  padding: var(--espace-md);
+  background-color: var(--couleur-papier);
+  border: 1px solid var(--couleur-bordure);
+  border-radius: var(--rayon-lg);
+  box-shadow: var(--ombre-sm);
+
+  // Inscrit : liseré vert à gauche. Redondant avec le libellé du bouton,
+  // jamais seul porteur de l'information — la couleur ne suffit pas.
+  &[data-inscrit] {
+    border-left: 4px solid var(--couleur-primaire);
+  }
+
+  &__entete {
+    display: flex;
+    gap: var(--espace-sm);
+    align-items: flex-start;
+  }
+
+  &__pastille {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    font-size: 1.25rem;
+    background-color: var(--couleur-fond);
+    border-radius: var(--rayon-md);
+  }
+
+  &__intitule {
+    min-width: 0;
+  }
+
+  &__titre {
+    margin: 0;
+    font-size: var(--taille-lg);
+  }
+
+  // Lien étendu : la zone cliquable couvre la carte, mais seul le titre est
+  // dans l'ordre de tabulation et lu comme libellé du lien.
+  &__lien {
+    color: inherit;
+    text-decoration: none;
+
+    &::after {
+      position: absolute;
+      inset: 0;
+      content: '';
+      border-radius: var(--rayon-lg);
+    }
+
+    &[data-hovered] {
+      color: var(--couleur-primaire);
+      text-decoration: underline;
+      text-underline-offset: 0.2em;
+    }
+  }
+
+  &__meta {
+    margin: var(--espace-2xs) 0 0;
+  }
+
+  &__description {
+    margin: 0;
+    color: var(--couleur-texte-doux);
+
+    @include tronquer(2);
+  }
+
+  &__pied {
+    // Au-dessus du ::after du lien, sinon le bouton d'inscription serait
+    // recouvert et tout clic ouvrirait la page de détail.
+    position: relative;
+    z-index: 1;
+    display: flex;
+    gap: var(--espace-sm);
+    align-items: center;
+    justify-content: space-between;
+    padding-top: var(--espace-xs);
+    margin-top: auto;
+    border-top: 1px solid var(--couleur-bordure);
+  }
+
+  &__action {
+    flex-shrink: 0;
+    padding-inline: var(--espace-md);
+    font-size: var(--taille-sm);
+  }
+}

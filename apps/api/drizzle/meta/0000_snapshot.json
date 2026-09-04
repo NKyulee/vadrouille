@@ -1,0 +1,286 @@
+{
+  "id": "8a216b51-cc00-4edd-ae2a-876df9312f14",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.membre": {
+      "name": "membre",
+      "schema": "",
+      "columns": {
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "prenom": {
+          "name": "prenom",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nom": {
+          "name": "nom",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "initiales": {
+          "name": "initiales",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "couleur_avatar": {
+          "name": "couleur_avatar",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'foret'"
+        },
+        "membre_depuis": {
+          "name": "membre_depuis",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "membre_user_id_users_id_fk": {
+          "name": "membre_user_id_users_id_fk",
+          "tableFrom": "membre",
+          "tableTo": "users",
+          "schemaTo": "auth",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {
+        "membre_lit_son_profil": {
+          "name": "membre_lit_son_profil",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": [
+            "authenticated"
+          ],
+          "using": "\"membre\".\"user_id\" = (select auth.uid())"
+        },
+        "membre_modifie_son_profil": {
+          "name": "membre_modifie_son_profil",
+          "as": "PERMISSIVE",
+          "for": "UPDATE",
+          "to": [
+            "authenticated"
+          ],
+          "using": "\"membre\".\"user_id\" = (select auth.uid())",
+          "withCheck": "\"membre\".\"user_id\" = (select auth.uid())"
+        }
+      },
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.professionnel": {
+      "name": "professionnel",
+      "schema": "",
+      "columns": {
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "prenom": {
+          "name": "prenom",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nom": {
+          "name": "nom",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "initiales": {
+          "name": "initiales",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "couleur_avatar": {
+          "name": "couleur_avatar",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'prune'"
+        },
+        "structure": {
+          "name": "structure",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "telephone": {
+          "name": "telephone",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "siret": {
+          "name": "siret",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "presentation": {
+          "name": "presentation",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "''"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "professionnel_user_id_users_id_fk": {
+          "name": "professionnel_user_id_users_id_fk",
+          "tableFrom": "professionnel",
+          "tableTo": "users",
+          "schemaTo": "auth",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {
+        "pro_lit_son_profil": {
+          "name": "pro_lit_son_profil",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": [
+            "authenticated"
+          ],
+          "using": "\"professionnel\".\"user_id\" = (select auth.uid()) AND (auth.jwt() -> 'app_metadata' ->> 'role') = 'professionnel'"
+        },
+        "pro_modifie_son_profil": {
+          "name": "pro_modifie_son_profil",
+          "as": "PERMISSIVE",
+          "for": "UPDATE",
+          "to": [
+            "authenticated"
+          ],
+          "using": "\"professionnel\".\"user_id\" = (select auth.uid()) AND (auth.jwt() -> 'app_metadata' ->> 'role') = 'professionnel'",
+          "withCheck": "\"professionnel\".\"user_id\" = (select auth.uid()) AND (auth.jwt() -> 'app_metadata' ->> 'role') = 'professionnel'"
+        },
+        "service_gere_les_pros": {
+          "name": "service_gere_les_pros",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "service_role"
+          ],
+          "using": "true",
+          "withCheck": "true"
+        }
+      },
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {},
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {
+    "public.professionnel_public": {
+      "columns": {
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "prenom": {
+          "name": "prenom",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nom": {
+          "name": "nom",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "initiales": {
+          "name": "initiales",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "couleur_avatar": {
+          "name": "couleur_avatar",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'prune'"
+        },
+        "structure": {
+          "name": "structure",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "presentation": {
+          "name": "presentation",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "''"
+        }
+      },
+      "definition": "select \"user_id\", \"prenom\", \"nom\", \"initiales\", \"couleur_avatar\", \"structure\", \"presentation\" from \"professionnel\"",
+      "name": "professionnel_public",
+      "schema": "public",
+      "isExisting": false,
+      "materialized": false
+    }
+  },
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

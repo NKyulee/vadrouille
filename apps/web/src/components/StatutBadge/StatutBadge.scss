@@ -1,0 +1,35 @@
+.statut {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--espace-2xs) var(--espace-sm);
+  font-size: var(--taille-sm);
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--statut-texte, var(--couleur-neutre));
+  background-color: var(--statut-fond, var(--couleur-neutre-fond));
+  border: 1px solid transparent;
+  border-radius: var(--rayon-rond);
+
+  &[data-statut='confirmee'],
+  &[data-facture='payee'] {
+    --statut-texte: var(--couleur-succes);
+    --statut-fond: var(--couleur-succes-fond);
+  }
+
+  &[data-statut='annulee'] {
+    --statut-texte: var(--couleur-danger);
+    --statut-fond: var(--couleur-danger-fond);
+  }
+
+  // À émettre / en attente : neutre, mais souligné d'un contour pour se
+  // distinguer du fond des cartes sans recourir à une couleur d'alerte.
+  &[data-statut='en-attente'],
+  &[data-facture='a-emettre'] {
+    border-color: var(--couleur-bordure);
+  }
+
+  &[data-facture='emise'] {
+    --statut-texte: var(--couleur-primaire-forte);
+    --statut-fond: var(--couleur-primaire-fond);
+  }
+}
